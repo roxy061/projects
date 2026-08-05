@@ -18,6 +18,11 @@
     <script>
         // Check Session
         const session = JSON.parse(localStorage.getItem('nvc_user_session') || '{}');
+        const isGuest = localStorage.getItem('nvc_guest') === 'true';
+        
+        if (!session.id && !isGuest) {
+            window.location.href = 'login.html';
+        }
 
         tailwind.config = {
             darkMode: 'class',
@@ -309,7 +314,7 @@
         function setupAuthUI() {
             const authContainer = document.getElementById('nav-auth');
             
-            if (session.isLoggedIn) {
+            if (session.id) {
                 let html = `<span class="text-xs text-slate-400 font-mono hidden sm:inline mr-2">Hi, ${session.username}</span>`;
                 
                 if (session.role === 'admin') {

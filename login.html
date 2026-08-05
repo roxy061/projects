@@ -128,9 +128,9 @@
         </form>
 
         <div class="mt-8 text-center">
-            <a href="index.html" class="text-xs text-slate-400 hover:text-emerald-400 transition-colors flex items-center justify-center gap-1">
-                <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> กลับสู่หน้าหลัก
-            </a>
+            <button onclick="guestAccess()" class="w-full py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-all flex items-center justify-center gap-2 border border-slate-700">
+                <i data-lucide="users" class="w-4 h-4"></i> เข้าชมในฐานะบุคคลทั่วไป (ไม่สมัครสมาชิก)
+            </button>
         </div>
     </div>
 
@@ -138,6 +138,11 @@
         document.addEventListener('DOMContentLoaded', () => lucide.createIcons());
 
         const API_URL = 'api.php';
+
+        function guestAccess() {
+            localStorage.setItem('nvc_guest', 'true');
+            window.location.href = 'index.html';
+        }
 
         function toggleForm(type) {
             const signinForm = document.getElementById('signin-form');
