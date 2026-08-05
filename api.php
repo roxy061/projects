@@ -45,27 +45,28 @@ switch ($action) {
     case 'register':
         if ($method !== 'POST') { http_response_code(405); exit(); }
         $fullname = $input['fullname'] ?? '';
+        $email = $input['email'] ?? '';
         $user = $input['username'] ?? '';
         $pass = $input['password'] ?? '';
         $level = $input['level'] ?? '';
 
-        if (empty($fullname) || empty($user) || empty($pass)) {
+        if (empty($fullname) || empty($email) || empty($user) || empty($pass)) {
             echo json_encode(["status" => "error", "message" => "กรุณากรอกข้อมูลให้ครบถ้วน"]);
             exit();
         }
 
         try {
-            // Check if username exists
-            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
-            $stmt->execute([$user]);
+            // Check if username or email exists
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+            $stmt->execute([$user, $email]);
             if ($stmt->fetch()) {
-                echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้นี้มีในระบบแล้ว"]);
+                echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้ หรือ อีเมลนี้มีในระบบแล้ว"]);
                 exit();
             }
 
             $hash = password_hash($pass, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (fullname, username, password_hash, level, role) VALUES (?, ?, ?, ?, 'user')");
-            $stmt->execute([$fullname, $user, $hash, $level]);
+            $stmt = $pdo->prepare("INSERT INTO users (fullname, email, username, password_hash, level, role) VALUES (?, ?, ?, ?, ?, 'user')");
+            $stmt->execute([$fullname, $email, $user, $hash, $level]);
             
             echo json_encode(["status" => "success", "message" => "สมัครสมาชิกสำเร็จ"]);
         } catch (Exception $e) {
@@ -89,6 +90,72 @@ switch ($action) {
             } else {
                 echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง"]);
             }
+        } catch (Exception $e) {
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        }
+        break;
+
+    case 'forgot_password':
+        if ($method !== 'POST') { http_response_code(405); exit(); }
+        $email = $input['email'] ?? '';
+
+        try {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user_row = $stmt->fetch();
+
+            if (!$user_row) {
+                echo json_encode(["status" => "error", "message" => "ไม่พบอีเมลนี้ในระบบ"]);
+                exit();
+            }
+
+            // Generate 6-digit OTP
+            $otp = sprintf("%06d", mt_rand(1, 999999));
+            $expiry = date('Y-m-d H:i:s', strtotime('+15 minutes'));
+
+            $stmt = $pdo->prepare("UPDATE users SET reset_otp = ?, otp_expiry = ? WHERE email = ?");
+            $stmt->execute([$otp, $expiry, $email]);
+
+            // Note: In a real system, send this OTP via email (e.g. PHPMailer).
+            // For this local environment, we return it in the JSON response so the user can test.
+            echo json_encode([
+                "status" => "success", 
+                "message" => "ระบบจำลอง: ส่ง OTP ไปที่อีเมลแล้ว", 
+                "mock_otp" => $otp 
+            ]);
+
+        } catch (Exception $e) {
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        }
+        break;
+
+    case 'reset_password':
+        if ($method !== 'POST') { http_response_code(405); exit(); }
+        $email = $input['email'] ?? '';
+        $otp = $input['otp'] ?? '';
+        $new_pass = $input['new_password'] ?? '';
+
+        if (empty($email) || empty($otp) || empty($new_pass)) {
+            echo json_encode(["status" => "error", "message" => "ข้อมูลไม่ครบถ้วน"]);
+            exit();
+        }
+
+        try {
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? AND reset_otp = ? AND otp_expiry > NOW()");
+            $stmt->execute([$email, $otp]);
+            $user_row = $stmt->fetch();
+
+            if (!$user_row) {
+                echo json_encode(["status" => "error", "message" => "รหัส OTP ไม่ถูกต้อง หรือหมดอายุแล้ว"]);
+                exit();
+            }
+
+            $hash = password_hash($new_pass, PASSWORD_DEFAULT);
+            $stmt = $pdo->prepare("UPDATE users SET password_hash = ?, reset_otp = NULL, otp_expiry = NULL WHERE id = ?");
+            $stmt->execute([$hash, $user_row['id']]);
+
+            echo json_encode(["status" => "success", "message" => "เปลี่ยนรหัสผ่านเรียบร้อยแล้ว เข้าสู่ระบบได้ทันที"]);
+
         } catch (Exception $e) {
             echo json_encode(["status" => "error", "message" => $e->getMessage()]);
         }

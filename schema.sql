@@ -23,8 +23,11 @@ CREATE TABLE IF NOT EXISTS `site_settings` (
 CREATE TABLE IF NOT EXISTS `users` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `fullname` VARCHAR(100) NOT NULL,
+    `email` VARCHAR(100) NOT NULL UNIQUE,
     `username` VARCHAR(50) NOT NULL UNIQUE,
     `password_hash` VARCHAR(255) NOT NULL,
+    `reset_otp` VARCHAR(10) DEFAULT NULL,
+    `otp_expiry` DATETIME DEFAULT NULL,
     `level` VARCHAR(50) DEFAULT NULL COMMENT 'ระดับชั้น (ปวช. 3, ปวส. 1, ฯลฯ)',
     `role` ENUM('user', 'admin') DEFAULT 'user' COMMENT 'user หรือ admin',
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -49,8 +52,8 @@ CREATE TABLE IF NOT EXISTS `projects` (
 -- Seed Initial Data
 
 -- Password is 'admin123'
-INSERT IGNORE INTO `users` (`id`, `fullname`, `username`, `password_hash`, `role`) VALUES
-(1, 'ผู้ดูแลระบบ IT Admin', 'admin', '$2y$10$e0MYzXyjpJS7Pd0RVvHwHe1mN14gN5O2b.qBvU9sQ1W2E3R4T5Y6U', 'admin');
+INSERT IGNORE INTO `users` (`id`, `fullname`, `email`, `username`, `password_hash`, `role`) VALUES
+(1, 'ผู้ดูแลระบบ IT Admin', 'admin@project.log', 'admin', '$2y$10$e0MYzXyjpJS7Pd0RVvHwHe1mN14gN5O2b.qBvU9sQ1W2E3R4T5Y6U', 'admin');
 
 -- Seed Settings
 INSERT IGNORE INTO `site_settings` (`setting_key`, `setting_value`) VALUES
