@@ -339,7 +339,7 @@
                     lucide.createIcons();
                 }
             } catch (err) {
-                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบสถานะ Backend/Nginx');
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="log-in" class="w-4 h-4"></i> ยืนยันเข้าสู่ระบบ`;
                 lucide.createIcons();
@@ -357,7 +357,7 @@
             const btn = document.getElementById('btn-submit-signup');
 
             if (pass !== confPass) {
-                showAlert('รหัสผ่านและการยืนยันรหัสผ่านไม่ตรงกัน!');
+                showAlert('รหัสผ่านไม่ตรงกัน');
                 return;
             }
 
@@ -389,7 +389,7 @@
                     lucide.createIcons();
                 }
             } catch (err) {
-                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบสถานะ Backend/Nginx');
                 btn.disabled = false;
                 btn.innerHTML = `<i data-lucide="user-plus" class="w-4 h-4"></i> สร้างบัญชีผู้ใช้`;
                 lucide.createIcons();
@@ -428,7 +428,7 @@
                     showAlert(data.message);
                 }
             } catch (err) {
-                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบสถานะ Backend/Nginx');
             }
 
             btn.disabled = false;
@@ -449,7 +449,7 @@
             }
 
             if (newPass !== confPass) {
-                showAlert('รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน!');
+                showAlert('รหัสผ่านไม่ตรงกัน');
                 return;
             }
 
@@ -474,7 +474,7 @@
                     showAlert(data.message);
                 }
             } catch (err) {
-                showAlert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                showAlert('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้ กรุณาตรวจสอบสถานะ Backend/Nginx');
             }
 
             btn.disabled = false;

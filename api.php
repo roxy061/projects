@@ -60,7 +60,7 @@ switch ($action) {
             $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
             $stmt->execute([$user, $email]);
             if ($stmt->fetch()) {
-                echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้ หรือ อีเมลนี้มีในระบบแล้ว"]);
+                echo json_encode(["status" => "error", "message" => "ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว"]);
                 exit();
             }
 
