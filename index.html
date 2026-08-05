@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="th" class="dark scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Showcase Archive | คลังจัดเก็บผลงานนวัตกรรมและโปรเจกต์นักศึกษา</title>
+    <meta name="description" content="ระบบจัดเก็บและแสดงผลงานโปรเจกต์นักศึกษาระดับ ปวช. และ ปวส. พร้อมระบบตรวจสอบความพร้อมโครงสร้างเซิร์ฟเวอร์">
+    
+    <!-- Google Fonts: Kanit (TH) & JetBrains Mono (Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10b981;
+        }
+        
+        /* Glassmorphism utility */
+        .glass-card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .glass-nav {
+            background: rgba(9, 13, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 25px -5px rgba(16, 185, 129, 0.3);
+        }
+        
+        .glow-emerald-sm {
+            box-shadow: 0 0 12px -2px rgba(16, 185, 129, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="sticky top-0 z-40 glass-nav">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#" class="flex items-center gap-3 group">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
+                    <i data-lucide="terminal" class="w-6 h-6 stroke-[2.5]"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-bold text-xl tracking-wide bg-gradient-to-r from-white via-slate-200 to-emerald-400 bg-clip-text text-transparent">NVC DevShowcase</span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-semibold">v2.4</span>
+                    </div>
+                    <p class="text-xs text-slate-400 hidden sm:block">คลังจัดเก็บและแสดงผลงานโปรเจกต์นวัตกรรม</p>
+                </div>
+            </a>
+
+            <!-- Navigation Links -->
+            <nav class="hidden md:flex items-center gap-1 bg-slate-900/80 p-1.5 rounded-full border border-slate-800">
+                <a href="#projects" class="px-4 py-2 rounded-full text-sm font-medium text-emerald-400 bg-slate-800/80 transition-colors flex items-center gap-2">
+                    <i data-lucide="folder-git-2" class="w-4 h-4"></i> คลังโปรเจกต์
+                </a>
+                <a href="#checklist-section" class="px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors flex items-center gap-2">
+                    <i data-lucide="server" class="w-4 h-4 text-emerald-400"></i> ข้อกำหนดเซิร์ฟเวอร์
+                </a>
+                <a href="#audit-tool" class="px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> ตรวจสอบความพร้อม
+                </a>
+            </nav>
+
+            <!-- System Status Indicator -->
+            <div class="flex items-center gap-3">
+                <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 font-mono text-xs">
+                    <span class="relative flex h-2 w-2">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    <span class="text-slate-300">SYSTEM ONLINE</span>
+                </div>
+                <a href="#audit-tool" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition-all duration-300 shadow-md shadow-emerald-500/20 flex items-center gap-2">
+                    <i data-lucide="check-square" class="w-4 h-4"></i>
+                    <span>Self Audit</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- ================= HERO SECTION ================= -->
+    <section class="relative pt-12 pb-16 overflow-hidden">
+        <!-- Ambient Glow Backgrounds -->
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute top-10 right-10 w-72 h-72 bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center max-w-3xl mx-auto">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-emerald-500/30 text-emerald-400 text-xs font-mono mb-6 glow-emerald-sm">
+                    <i data-lucide="code-2" class="w-4 h-4"></i>
+                    <span>DEPARTMENT OF INFORMATION TECHNOLOGY</span>
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                    ศูนย์รวมผลงานโปรเจกต์นวัตกรรม <br class="hidden sm:inline">
+                    <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">Project Showcase Archive</span>
+                </h1>
+                <p class="mt-4 text-base sm:text-lg text-slate-400 font-light leading-relaxed">
+                    แหล่งรวบรวมโครงงานและนวัตกรรมเทคโนโลยีของนักศึกษา ระดับ ปวช.3, ปวส.1 และ ปวส.2 แผนกวิชาเทคโนโลยีสารสนเทศ พร้อมมาตรฐานการจัดตั้งระบบเซิร์ฟเวอร์ Web Application
+                </p>
+
+                <!-- Stats Bar -->
+                <div class="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+                    <div class="glass-card p-3.5 rounded-2xl text-center">
+                        <div class="text-2xl font-bold text-white font-mono" id="stat-total">0</div>
+                        <div class="text-xs text-slate-400 mt-0.5">โปรเจกต์ทั้งหมด</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-2xl text-center">
+                        <div class="text-2xl font-bold text-emerald-400 font-mono" id="stat-web">0</div>
+                        <div class="text-xs text-slate-400 mt-0.5">Web & Software</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-2xl text-center">
+                        <div class="text-2xl font-bold text-cyan-400 font-mono" id="stat-iot">0</div>
+                        <div class="text-xs text-slate-400 mt-0.5">IoT & Embedded</div>
+                    </div>
+                    <div class="glass-card p-3.5 rounded-2xl text-center">
+                        <div class="text-2xl font-bold text-purple-400 font-mono" id="stat-automation">0</div>
+                        <div class="text-xs text-slate-400 mt-0.5">Automation</div>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="mt-8 relative max-w-2xl mx-auto">
+                    <div class="relative group">
+                        <div class="absolute inset-0 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-40 transition-opacity blur-md"></div>
+                        <div class="relative flex items-center">
+                            <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none"></i>
+                            <input type="text" id="search-input" placeholder="ค้นหาตามชื่อโปรเจกต์, ชื่อผู้พัฒนา, รหัสนักศึกษา หรือ Tag (เช่น Nginx, MariaDB, ESP32)..." 
+                                class="w-full pl-12 pr-12 py-4 rounded-2xl bg-slate-900/90 border border-slate-700/80 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm sm:text-base transition-all">
+                            <button id="clear-search" class="hidden absolute right-4 text-slate-400 hover:text-white">
+                                <i data-lucide="x" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= MAIN CONTENT & FILTERS ================= -->
+    <main id="projects" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 flex-1 w-full">
+        
+        <!-- Filter Controls Container -->
+        <div class="glass-card p-4 sm:p-5 rounded-2xl mb-8 space-y-4">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                
+                <!-- Grade Filter (ระดับชั้น) -->
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono flex items-center gap-1.5">
+                        <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-emerald-400"></i> ระดับชั้น (Grade Level):
+                    </span>
+                    <div class="flex flex-wrap gap-2" id="grade-filter-group">
+                        <button data-grade="all" class="grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-emerald-500 text-slate-950 font-semibold shadow-md shadow-emerald-500/20">
+                            ทั้งหมด
+                        </button>
+                        <button data-grade="ปวช. 3" class="grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">
+                            ปวช. 3 (โครงงาน)
+                        </button>
+                        <button data-grade="ปวส. 1" class="grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">
+                            ปวส. 1
+                        </button>
+                        <button data-grade="ปวส. 2" class="grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white">
+                            ปวส. 2
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Category Filter (หมวดหมู่เทคโนโลยี) -->
+                <div>
+                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-2 font-mono flex items-center gap-1.5">
+                        <i data-lucide="layers" class="w-3.5 h-3.5 text-cyan-400"></i> หมวดหมู่เทคโนโลยี (Category):
+                    </span>
+                    <div class="flex flex-wrap gap-2" id="category-filter-group">
+                        <button data-cat="all" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            ทั้งหมด
+                        </button>
+                        <button data-cat="IoT" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-cyan-500/50 hover:text-white">
+                            ⚡ IoT & Embedded
+                        </button>
+                        <button data-cat="Web & Software" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-emerald-500/50 hover:text-white">
+                            🌐 Web & Software
+                        </button>
+                        <button data-cat="Automation" class="cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-purple-500/50 hover:text-white">
+                            🤖 Automation
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Active Filters Summary & Results Counter -->
+            <div class="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+                <div class="flex items-center gap-2">
+                    <span>กำลังแสดงผล:</span>
+                    <span id="active-filter-badge" class="px-2.5 py-0.5 rounded-md bg-slate-800 text-slate-200 font-mono">ทั้งหมด</span>
+                    <span id="results-count" class="text-emerald-400 font-semibold">(6 รายการ)</span>
+                </div>
+                <button id="reset-all-filters" class="text-slate-400 hover:text-emerald-400 transition-colors flex items-center gap-1">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i> ล้างการค้นหา
+                </button>
+            </div>
+        </div>
+
+        <!-- Projects Grid Container -->
+        <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Project Cards dynamically rendered by JavaScript -->
+        </div>
+
+        <!-- No Results State -->
+        <div id="no-results" class="hidden text-center py-16 glass-card rounded-2xl">
+            <div class="w-16 h-16 bg-slate-800/80 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-500">
+                <i data-lucide="folder-search" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-200">ไม่พบโปรเจกต์ที่ตรงกับเงื่อนไข</h3>
+            <p class="text-sm text-slate-400 mt-1">ลองเปลี่ยนคำค้นหา หรือคลิกล้างตัวกรองทั้งหมด</p>
+            <button onclick="resetFilters()" class="mt-4 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-semibold">
+                ล้างตัวกรองทั้งหมด
+            </button>
+        </div>
+
+        <!-- ================= PROJECT CHECKLIST REQUIREMENT SECTION ================= -->
+        <section id="checklist-section" class="mt-20 pt-12 border-t border-slate-800">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-mono mb-3 border border-emerald-500/20">
+                    <i data-lucide="clipboard-check" class="w-4 h-4"></i>
+                    <span>SYSTEM COMPLIANCE REQUIREMENT</span>
+                </div>
+                <h2 class="text-2xl sm:text-4xl font-bold text-white">ข้อกำหนดองค์ประกอบโปรเจกต์</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">
+                    มาตรฐานการจัดเตรียมระบบเซิร์ฟเวอร์และโครงสร้างเว็บแอปพลิเคชัน สำหรับนักศึกษาแผนกเทคโนโลยีสารสนเทศ
+                </p>
+            </div>
+
+            <!-- Checklist Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 1. Web & VirtualHost -->
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500 hover:border-emerald-500/60 transition-all">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                                <i data-lucide="globe" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-white">1. โครงสร้างเว็บและโดเมน</h3>
+                                <p class="text-xs text-emerald-400 font-mono">Web & VirtualHost Configuration</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-mono border border-slate-700">REQ-01</span>
+                    </div>
+                    
+                    <ul class="space-y-3 text-sm text-slate-300 mb-4">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
+                            <span>ตั้งค่าชื่อโดเมน/Subdomain ประจำตัว เช่น <code class="text-emerald-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">std66001.nvc.ac.th</code></span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 mt-0.5 shrink-0"></i>
+                            <span>สร้างและเปิดใช้งานไฟล์ VirtualHost ใน Nginx ที่ตำแหน่ง <code class="text-emerald-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">/etc/nginx/conf.d/username.conf</code></span>
+                        </li>
+                    </ul>
+
+                    <!-- Code Example Snippet -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                        <div class="flex justify-between items-center text-slate-400 mb-1.5 pb-1 border-b border-slate-800/80">
+                            <span>/etc/nginx/conf.d/std66001.conf</span>
+                            <button onclick="copyCode(this, `server {\n    listen 80;\n    server_name std66001.nvc.ac.th;\n    root /var/www/std66001;\n    index index.html index.php;\n}`)" class="hover:text-emerald-400 text-[11px] flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="text-slate-300 overflow-x-auto"><span class="text-purple-400">server</span> {
+    <span class="text-cyan-400">listen</span> 80;
+    <span class="text-cyan-400">server_name</span> std66001.nvc.ac.th;
+    <span class="text-cyan-400">root</span> /var/www/std66001;
+    <span class="text-cyan-400">index</span> index.html index.php;
+}</pre>
+                    </div>
+                </div>
+
+                <!-- 2. MariaDB Database -->
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-cyan-500 hover:border-cyan-500/60 transition-all">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                                <i data-lucide="database" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-white">2. ระบบเว็บไซต์และฐานข้อมูล</h3>
+                                <p class="text-xs text-cyan-400 font-mono">Web Application & MariaDB</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-mono border border-slate-700">REQ-02</span>
+                    </div>
+                    
+                    <ul class="space-y-3 text-sm text-slate-300 mb-4">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-400 mt-0.5 shrink-0"></i>
+                            <span>เว็บไซต์มีการดึงข้อมูลแสดงผลจาก MariaDB Database (คลังสินค้า, บันทึกงาน หรือคลังโปรเจกต์)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-cyan-400 mt-0.5 shrink-0"></i>
+                            <span>มีการสร้าง User & Password เฉพาะใน MariaDB สำหรับการเชื่อมต่อของเว็บตนเอง (ห้ามใช้ root)</span>
+                        </li>
+                    </ul>
+
+                    <!-- Code Example Snippet -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                        <div class="flex justify-between items-center text-slate-400 mb-1.5 pb-1 border-b border-slate-800/80">
+                            <span>MariaDB SQL Setup Command</span>
+                            <button onclick="copyCode(this, `CREATE DATABASE db_std66001;\nCREATE USER 'user_std66001'@'localhost' IDENTIFIED BY 'StrongPass123!';\nGRANT ALL PRIVILEGES ON db_std66001.* TO 'user_std66001'@'localhost';`)" class="hover:text-cyan-400 text-[11px] flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="text-slate-300 overflow-x-auto"><span class="text-emerald-400">CREATE DATABASE</span> db_std66001;
+<span class="text-emerald-400">CREATE USER</span> <span class="text-yellow-300">'user_std66001'</span>@<span class="text-yellow-300">'localhost'</span> <span class="text-emerald-400">IDENTIFIED BY</span> <span class="text-yellow-300">'StrongPass!'</span>;
+<span class="text-emerald-400">GRANT ALL PRIVILEGES ON</span> db_std66001.* <span class="text-emerald-400">TO</span> <span class="text-yellow-300">'user_std66001'</span>@<span class="text-yellow-300">'localhost'</span>;</pre>
+                    </div>
+                </div>
+
+                <!-- 3. Security & HTTPS -->
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-amber-500 hover:border-amber-500/60 transition-all">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                                <i data-lucide="shield-check" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-white">3. ความปลอดภัยและไฟร์วอลล์</h3>
+                                <p class="text-xs text-amber-400 font-mono">Security & HTTPS (Port 443 SSL)</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-mono border border-slate-700">REQ-03</span>
+                    </div>
+                    
+                    <ul class="space-y-3 text-sm text-slate-300 mb-4">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 mt-0.5 shrink-0"></i>
+                            <span>หน้าเว็บเปิดใช้งาน SSL/HTTPS มีสัญลักษณ์แม่กุญแจความปลอดภัย 🔒 บน URL (พอร์ต 443 SSL Cert)</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-amber-400 mt-0.5 shrink-0"></i>
+                            <span>ไฟร์วอลล์ UFW เปิดทำงาน อนุญาตเฉพาะพอร์ตที่จำเป็น เช่น พอร์ต <code class="text-amber-300 font-mono bg-slate-900 px-1 py-0.5 rounded">22 (SSH)</code>, <code class="text-amber-300 font-mono bg-slate-900 px-1 py-0.5 rounded">80 (HTTP)</code>, <code class="text-amber-300 font-mono bg-slate-900 px-1 py-0.5 rounded">443 (HTTPS)</code></span>
+                        </li>
+                    </ul>
+
+                    <!-- Code Example Snippet -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                        <div class="flex justify-between items-center text-slate-400 mb-1.5 pb-1 border-b border-slate-800/80">
+                            <span>UFW Firewall Setup</span>
+                            <button onclick="copyCode(this, `sudo ufw default deny incoming\nsudo ufw allow 22/tcp\nsudo ufw allow 80/tcp\nsudo ufw allow 443/tcp\nsudo ufw enable`)" class="hover:text-amber-400 text-[11px] flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="text-slate-300 overflow-x-auto"><span class="text-slate-500"># อนุญาตเฉพาะพอร์ตที่จำเป็นเท่านั้น</span>
+<span class="text-purple-400">sudo</span> ufw allow 22/tcp
+<span class="text-purple-400">sudo</span> ufw allow 80/tcp
+<span class="text-purple-400">sudo</span> ufw allow 443/tcp
+<span class="text-purple-400">sudo</span> ufw enable</pre>
+                    </div>
+                </div>
+
+                <!-- 4. Backup & Observability -->
+                <div class="glass-card p-6 rounded-2xl border-l-4 border-l-purple-500 hover:border-purple-500/60 transition-all">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400">
+                                <i data-lucide="hard-drive-download" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-white">4. ระบบสำรองข้อมูลและการดู Log</h3>
+                                <p class="text-xs text-purple-400 font-mono">Backup & Observability</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 text-xs font-mono border border-slate-700">REQ-04</span>
+                    </div>
+                    
+                    <ul class="space-y-3 text-sm text-slate-300 mb-4">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400 mt-0.5 shrink-0"></i>
+                            <span>มีไฟล์สำรองข้อมูลฐานข้อมูลอัตโนมัติไฟล์ <code class="text-purple-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">.sql.gz</code> เก็บอยู่ในโฟลเดอร์ <code class="text-purple-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">/var/backups/username/</code></span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-purple-400 mt-0.5 shrink-0"></i>
+                            <span>ตั้งค่าคำสั่ง Crontab สำหรับสำรองข้อมูลอัตโนมัติเรียบร้อยแล้ว</span>
+                        </li>
+                    </ul>
+
+                    <!-- Code Example Snippet -->
+                    <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs font-mono">
+                        <div class="flex justify-between items-center text-slate-400 mb-1.5 pb-1 border-b border-slate-800/80">
+                            <span>Crontab Backup Job (crontab -e)</span>
+                            <button onclick="copyCode(this, `0 2 * * * mysqldump -u user_std66001 -p'StrongPass!' db_std66001 | gzip > /var/backups/std66001/backup_$(date +\\%Y\\%m\\%d).sql.gz`)" class="hover:text-purple-400 text-[11px] flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                            </button>
+                        </div>
+                        <pre class="text-slate-300 overflow-x-auto"><span class="text-slate-500"># สำรองข้อมูลอัตโนมัติทุกตี 2</span>
+0 2 * * * mysqldump -u user_std66001 -p<span class="text-yellow-300">'pass'</span> db_std66001 | gzip &gt; /var/backups/std66001/backup_<span class="text-cyan-400">$(date +\%Y\%m\%d)</span>.sql.gz</pre>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ================= INTERACTIVE SELF AUDIT CHECKLIST TOOL ================= -->
+        <section id="audit-tool" class="mt-16 glass-card p-6 sm:p-8 rounded-3xl border border-emerald-500/30 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+                <div>
+                    <div class="flex items-center gap-2 text-emerald-400 text-xs font-mono font-semibold mb-1">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        <span>STUDENT SELF-AUDIT TOOL</span>
+                    </div>
+                    <h3 class="text-2xl font-bold text-white">ระบบประเมินความพร้อมเซิร์ฟเวอร์ด้วยตนเอง</h3>
+                    <p class="text-slate-400 text-sm mt-1">กรอกรหัสนักศึกษา/ชื่อผู้ใช้งาน เพื่อบันทึกและประเมินสถานะการติดตั้งระบบเซิร์ฟเวอร์</p>
+                </div>
+
+                <div class="w-full md:w-auto flex items-center gap-3">
+                    <div class="bg-slate-900 px-4 py-2 rounded-xl border border-slate-800 flex items-center gap-2">
+                        <span class="text-xs text-slate-400 font-mono">Username:</span>
+                        <input type="text" id="audit-username" placeholder="std66001" value="std66001" class="bg-transparent text-emerald-400 font-mono font-bold text-sm focus:outline-none w-28">
+                    </div>
+                    <div class="text-right">
+                        <div class="text-2xl font-bold font-mono text-emerald-400" id="audit-score">0%</div>
+                        <div class="text-[10px] text-slate-400 font-mono">COMPLIANCE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-slate-900 h-3 rounded-full my-6 overflow-hidden border border-slate-800">
+                <div id="audit-progress-bar" class="bg-gradient-to-r from-emerald-500 to-cyan-400 h-full w-0 transition-all duration-500"></div>
+            </div>
+
+            <!-- Interactive Checkboxes -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="audit-checkboxes-container">
+                <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                    <input type="checkbox" class="audit-chk mt-1 w-4 h-4 accent-emerald-500 rounded" data-index="0" onchange="updateAuditProgress()">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-200">1. Web & VirtualHost</div>
+                        <div class="text-xs text-slate-400 mt-0.5">มี Subdomain <code class="text-emerald-400 font-mono">std66001.nvc.ac.th</code> และ Nginx Conf สภาพสมบูรณ์</div>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                    <input type="checkbox" class="audit-chk mt-1 w-4 h-4 accent-emerald-500 rounded" data-index="1" onchange="updateAuditProgress()">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-200">2. MariaDB Database & User</div>
+                        <div class="text-xs text-slate-400 mt-0.5">เว็บดึง DB MariaDB และสร้าง User/Password แยกเฉพาะ</div>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                    <input type="checkbox" class="audit-chk mt-1 w-4 h-4 accent-emerald-500 rounded" data-index="2" onchange="updateAuditProgress()">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-200">3. Security SSL/HTTPS & UFW</div>
+                        <div class="text-xs text-slate-400 mt-0.5">เปิด HTTPS 🔒 (Port 443) และ UFW เปิดเฉพาะ 22, 80, 443</div>
+                    </div>
+                </label>
+
+                <label class="flex items-start gap-3 p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 cursor-pointer transition-colors">
+                    <input type="checkbox" class="audit-chk mt-1 w-4 h-4 accent-emerald-500 rounded" data-index="3" onchange="updateAuditProgress()">
+                    <div>
+                        <div class="text-sm font-semibold text-slate-200">4. Backup Auto .sql.gz & Crontab</div>
+                        <div class="text-xs text-slate-400 mt-0.5">ไฟล์แบ็กอัปใน <code class="text-emerald-400 font-mono">/var/backups/username/</code> และตั้ง Crontab สำเร็จ</div>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Status Alert Banner -->
+            <div id="audit-status-banner" class="mt-6 p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm flex items-center gap-3">
+                <i data-lucide="alert-circle" class="w-5 h-5 text-amber-400 shrink-0"></i>
+                <span class="text-slate-300">กรุณาเลือกเช็กลิสต์รายการที่ดำเนินการเสร็จสิ้นเพื่อประเมินความพร้อม</span>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="bg-slate-950 border-t border-slate-800/80 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6 text-slate-400 text-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                    <i data-lucide="terminal" class="w-4 h-4"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-white">แผนกวิชาเทคโนโลยีสารสนเทศ (IT Department)</div>
+                    <div class="text-xs text-slate-500">วิทยาลัยอาชีวศึกษา | Vocational & Technical College</div>
+                </div>
+            </div>
+            <div class="flex flex-wrap items-center gap-6 text-xs text-slate-400 font-mono">
+                <span>Nginx 1.24+</span>
+                <span>MariaDB 10.11+</span>
+                <span>Ubuntu Server 22.04 LTS</span>
+            </div>
+            <div class="text-xs text-slate-500">
+                &copy; 2026 NVC Project Showcase Archive. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <!-- ================= PROJECT DETAIL POP-UP MODAL ================= -->
+    <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md transition-all duration-300">
+        <div class="glass-card w-full max-w-4xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col shadow-2xl border border-slate-700/80 animate-in fade-in zoom-in-95 duration-200">
+            
+            <!-- Modal Header -->
+            <div class="p-6 bg-slate-900/90 border-b border-slate-800 flex items-start justify-between gap-4">
+                <div>
+                    <div class="flex flex-wrap items-center gap-2 mb-2" id="modal-badges">
+                        <!-- Dynamic Badges -->
+                    </div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white" id="modal-title">ชื่อโปรเจกต์</h2>
+                    <p class="text-xs font-mono text-emerald-400 mt-0.5" id="modal-subtitle">Project English Name</p>
+                </div>
+                <button onclick="closeModal()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-slate-300">
+                
+                <!-- Overview & Objectives -->
+                <div>
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono mb-2 flex items-center gap-1.5">
+                        <i data-lucide="file-text" class="w-4 h-4 text-emerald-400"></i> รายละเอียดโครงงาน (Overview & Details):
+                    </h4>
+                    <p id="modal-desc" class="text-slate-300 leading-relaxed bg-slate-900/50 p-4 rounded-xl border border-slate-800/80">
+                        คำอธิบายรายละเอียดโปรเจกต์...
+                    </p>
+                </div>
+
+                <!-- Server Architecture Compliance Grid -->
+                <div>
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono mb-3 flex items-center gap-1.5">
+                        <i data-lucide="server" class="w-4 h-4 text-cyan-400"></i> สถานะความพร้อมสถาปัตยกรรมเซิร์ฟเวอร์ (Server Checklist Compliance):
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="modal-checklist-grid">
+                        <!-- Server checklist compliance items -->
+                    </div>
+                </div>
+
+                <!-- Tech Stack & Team Info Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Tech Stack -->
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                        <h5 class="text-xs font-semibold text-slate-400 uppercase font-mono mb-2">เทคโนโลยีที่ใช้งาน (Tech Stack):</h5>
+                        <div class="flex flex-wrap gap-1.5" id="modal-tech-tags">
+                            <!-- Tags -->
+                        </div>
+                    </div>
+
+                    <!-- Team & Advisor -->
+                    <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                        <h5 class="text-xs font-semibold text-slate-400 uppercase font-mono mb-2">คณะผู้จัดทำและอาจารย์ที่ปรึกษา:</h5>
+                        <div class="space-y-1.5 text-xs">
+                            <div class="text-slate-200"><span class="text-slate-400">ผู้จัดทำ:</span> <span id="modal-authors" class="font-medium text-emerald-300"></span></div>
+                            <div class="text-slate-200"><span class="text-slate-400">รหัสนักศึกษา:</span> <span id="modal-std-id" class="font-mono text-slate-300"></span></div>
+                            <div class="text-slate-200"><span class="text-slate-400">อาจารย์ที่ปรึกษา:</span> <span id="modal-advisor" class="text-slate-300"></span></div>
+                            <div class="text-slate-200"><span class="text-slate-400">ปีการศึกษา:</span> <span id="modal-year" class="font-mono text-slate-300"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VirtualHost Config Preview -->
+                <div>
+                    <h4 class="text-xs font-semibold text-slate-400 uppercase tracking-wider font-mono mb-2 flex items-center gap-1.5">
+                        <i data-lucide="code" class="w-4 h-4 text-purple-400"></i> Nginx VirtualHost File Path & Domain:
+                    </h4>
+                    <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 font-mono text-xs text-slate-300">
+                        <div class="text-emerald-400 mb-1">URL: <a href="#" id="modal-domain-link" target="_blank" class="underline hover:text-emerald-300 font-bold">http://username.nvc.ac.th</a> 🔒 SSL Port 443</div>
+                        <div class="text-slate-400">Nginx Config: <span id="modal-conf-path" class="text-yellow-300">/etc/nginx/conf.d/username.conf</span></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer Links -->
+            <div class="p-4 bg-slate-900/90 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <a id="modal-demo-btn" href="#" target="_blank" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-emerald-500/20">
+                        <i data-lucide="external-link" class="w-4 h-4"></i> เข้าสู่เว็บไซต์โปรเจกต์
+                    </a>
+                    <a id="modal-github-btn" href="#" target="_blank" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs flex items-center gap-2 transition-all border border-slate-700">
+                        <i data-lucide="github" class="w-4 h-4"></i> GitHub Code
+                    </a>
+                </div>
+                <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT LOGIC ================= -->
+    <script>
+        // Mock Projects Data
+        const projectsData = [
+            {
+                id: 1,
+                title: "ระบบคลังสินค้าและจัดการสต็อกออนไลน์",
+                subtitle: "Smart Inventory & Stock Management System",
+                grade: "ปวส. 2",
+                category: "Web & Software",
+                academicYear: "2567",
+                authors: "นายธนกฤต สุขใจ, นายวิศรุต มีมาก",
+                studentId: "66309010001, 66309010002",
+                advisor: "อ.สมชาย สายเทคโนโลยี",
+                domain: "inventory.nvc.ac.th",
+                status: "Verified",
+                coverGradient: "from-emerald-900/50 via-slate-900 to-cyan-900/40",
+                description: "ระบบบริหารจัดการคลังสินค้าสำหรับผู้ประกอบการขนาดย่อย รองรับการบันทึก รับเข้า-เบิกออกสินค้า บาร์โค้ดสแกนเนอร์ และออกรายงานสรุปยอดขายแบบ Real-time เชื่อมต่อฐานข้อมูล MariaDB และรันบน Nginx Web Server",
+                techStack: ["Nginx", "MariaDB", "PHP 8.2", "Tailwind CSS", "JavaScript", "UFW", "Crontab"],
+                checklist: {
+                    virtualHost: true,
+                    mariadb: true,
+                    security: true,
+                    backup: true
+                },
+                githubUrl: "https://github.com/example/inventory-system",
+                demoUrl: "https://inventory.nvc.ac.th"
+            },
+            {
+                id: 2,
+                title: "ระบบฟาร์มเมล่อนอัจฉริยะด้วย IoT",
+                subtitle: "IoT Smart Melon Farming Control System",
+                grade: "ปวช. 3",
+                category: "IoT",
+                academicYear: "2567",
+                authors: "น.ส.กนกวรรณ ใจดี, นายชยพล เรียนดี",
+                studentId: "65209010015, 65209010018",
+                advisor: "อ.ประเสริฐ นวัตกรรม",
+                domain: "smartfarm.nvc.ac.th",
+                status: "Verified",
+                coverGradient: "from-teal-900/50 via-slate-900 to-emerald-900/40",
+                description: "โครงงานระบบเซนเซอร์วัดความชื้นในดิน อุณหภูมิ และแสงสว่าง ควบคุมการรดน้ำอัตโนมัติผ่านบอร์ด ESP32 แสดงผลข้อมูลบน Dashboard เว็บไซต์ พร้อมระบบแจ้งเตือนผ่าน Line Notify",
+                techStack: ["ESP32", "MariaDB", "Nginx", "Python", "MQTT", "Chart.js"],
+                checklist: {
+                    virtualHost: true,
+                    mariadb: true,
+                    security: true,
+                    backup: true
+                },
+                githubUrl: "https://github.com/example/smart-farm-iot",
+                demoUrl: "https://smartfarm.nvc.ac.th"
+            },
+            {
+                id: 3,
+                title: "ระบบคิวและจองคิวบริการซ่อมคอมพิวเตอร์",
+                subtitle: "IT Service Desk & Repair Queue System",
+                grade: "ปวส. 1",
+                category: "Web & Software",
+                academicYear: "2567",
+                authors: "นายณัฐวุฒิ แจ่มใส, นายภาณุเดช มั่นคง",
+                studentId: "67309010022, 67309010025",
+                advisor: "อ.นภา วงศ์คอม",
+                domain: "itservice.nvc.ac.th",
+                status: "Verified",
+                coverGradient: "from-blue-900/50 via-slate-900 to-indigo-900/40",
+                description: "ระบบติดตามสถานะการซ่อมอุปกรณ์คอมพิวเตอร์ของศูนย์บริการเทคโนโลยีสารสนเทศ แจ้งเตือนผู้ใช้บริการผ่าน SMS/E-mail และออกใบสั่งซ่อมอิเล็กทรอนิกส์ พร้อมระบบสำรองข้อมูลอัตโนมัติ",
+                techStack: ["Node.js", "MariaDB", "Express", "Nginx", "HTTPS/SSL", "Tailwind CSS"],
+                checklist: {
+                    virtualHost: true,
+                    mariadb: true,
+                    security: true,
+                    backup: true
+                },
+                githubUrl: "https://github.com/example/it-service-queue",
+                demoUrl: "https://itservice.nvc.ac.th"
+            },
+            {
+                id: 4,
+                title: "แขนกลอุตสาหกรรมจำลองคัดแยกสีวัตถุ",
+                subtitle: "Automated Color Sorting Robotic Arm",
+                grade: "ปวส. 2",
+                category: "Automation",
+                academicYear: "2567",
+                authors: "นายพีรภัทร ชาญชัย, นายภานุวัฒน์ ทรงพลัง",
+                studentId: "66309010040, 66309010042",
+                advisor: "อ.สมศักดิ์ หุ่นยนต์",
+                domain: "roboticarm.nvc.ac.th",
+                status: "Verified",
+                coverGradient: "from-purple-900/50 via-slate-900 to-pink-900/40",
+                description: "ระบบอัตโนมัติคัดแยกชิ้นส่วนโรงงานโดยใช้กล้องเว็บบอร์ดตรวจจับสีร่วมกับ Image Processing (OpenCV) ส่งค่าควบคุม Servo Motor 4 แกน พร้อมเว็บมอนิเตอร์นับจำนวนชิ้นงานผ่าน MariaDB",
+                techStack: ["Python", "OpenCV", "Raspberry Pi", "MariaDB", "Nginx", "WebSocket"],
+                checklist: {
+                    virtualHost: true,
+                    mariadb: true,
+                    security: true,
+                    backup: true
+                },
+                githubUrl: "https://github.com/example/color-sorter-robot",
+                demoUrl: "https://roboticarm.nvc.ac.th"
+            },
+            {
+                id: 5,
+                title: "ระบบยืม-คืนอุปกรณ์ห้องปฏิบัติการ IT",
+                subtitle: "IT Lab Equipment Borrowing System",
+                grade: "ปวช. 3",
+                category: "Web & Software",
+                academicYear: "2567",
+                authors: "น.ส.อารียา สุขสว่าง, นายธนพล สุขสันต์",
+                studentId: "65209010033, 65209010035",
+                advisor: "อ.สมชาย สายเทคโนโลยี",
+                domain: "itborrow.nvc.ac.th",
+                status: "In Progress",
+                coverGradient: "from-amber-900/50 via-slate-900 to-orange-900/40",
+                description: "โครงงานระบบอนุมัติการยืมอุปกรณ์คอมพิวเตอร์และเซนเซอร์ทางออนไลน์สำหรับนักศึกษา ตรวจสอบวันกำหนดคืนอัตโนมัติ และสแกน QR Code เพื่อรับ-ส่งคืนอุปกรณ์",
+                techStack: ["PHP 8.1", "MariaDB", "Nginx", "Bootstrap 5", "UFW Firewall"],
+                checklist: {
+                    virtualHost: true,
+                    mariadb: true,
+                    security: false,
+                    backup: true
+                },
+                githubUrl: "https://github.com/example/it-equipment-borrow",
+                demoUrl: "https://itborrow.nvc.ac.th"
+            },
+            {
+                id: 6,
+                title: "ระบบมิเตอร์ไฟฟ้าหอพักอัจฉริยะอัตโนมัติ",
+                subtitle: "Smart Power Meter & Auto Billing System",
+                grade: "ปวส. 1",
+                category: "Automation",
+                academicYear: "2567",
+                authors: "นายเอกภพ มั่งคั่ง, นายกรวิก ดีงาม",
+                studentId: "67309010050, 67309010052",
+                advisor: "อ.ประเสริฐ นวัตกรรม",
+                domain: "powermeter.nvc.ac.th",
+                status: "Verified",
+                coverGradient: "from-cyan-900/50 via-slate-900 to-blue-900/40",
+                description: "ระบบวัดการใช้งานไฟฟ้าในห้องพักแบบดิจิทัลคำนวณหน่วยไฟฟ้าและออกใบแจ้งหนี้อัตโนมัติ ตัดไฟเมื่อค้างชำระผ่านเว็บควบคุมและแจ้งเตือนผู้เช่าผ่านระบบไลน์",
+                techStack: ["ESP32", "PZEM-004T", "MariaDB", "Nginx", "CronJob", "HTTPS"],
+                checklist: {
+                    virtualHost: true,
+                    mariadb: true,
+                    security: true,
+                    backup: true
+                },
+                githubUrl: "https://github.com/example/smart-power-meter",
+                demoUrl: "https://powermeter.nvc.ac.th"
+            }
+        ];
+
+        // State Management
+        let currentGradeFilter = 'all';
+        let currentCatFilter = 'all';
+        let searchQuery = '';
+
+        // DOM Elements
+        const projectsGrid = document.getElementById('projects-grid');
+        const noResults = document.getElementById('no-results');
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search');
+        const activeFilterBadge = document.getElementById('active-filter-badge');
+        const resultsCount = document.getElementById('results-count');
+        const resetFiltersBtn = document.getElementById('reset-all-filters');
+
+        // Modal Elements
+        const modal = document.getElementById('project-modal');
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            renderStats();
+            renderProjects();
+            setupFilterEvents();
+            setupSearchEvents();
+            initAuditTool();
+            lucide.createIcons();
+        });
+
+        // Calculate and Render Stats
+        function renderStats() {
+            document.getElementById('stat-total').innerText = projectsData.length;
+            document.getElementById('stat-web').innerText = projectsData.filter(p => p.category === 'Web & Software').length;
+            document.getElementById('stat-iot').innerText = projectsData.filter(p => p.category === 'IoT').length;
+            document.getElementById('stat-automation').innerText = projectsData.filter(p => p.category === 'Automation').length;
+        }
+
+        // Render Filtered Projects Grid
+        function renderProjects() {
+            const filtered = projectsData.filter(project => {
+                const matchGrade = (currentGradeFilter === 'all') || (project.grade === currentGradeFilter);
+                const matchCat = (currentCatFilter === 'all') || (project.category === currentCatFilter);
+                
+                const q = searchQuery.toLowerCase().trim();
+                const matchSearch = !q || 
+                    project.title.toLowerCase().includes(q) ||
+                    project.subtitle.toLowerCase().includes(q) ||
+                    project.authors.toLowerCase().includes(q) ||
+                    project.studentId.toLowerCase().includes(q) ||
+                    project.domain.toLowerCase().includes(q) ||
+                    project.techStack.some(t => t.toLowerCase().includes(q));
+
+                return matchGrade && matchCat && matchSearch;
+            });
+
+            // Update Counts and Badges
+            resultsCount.innerText = `(${filtered.length} รายการ)`;
+            updateActiveFilterBadgeText();
+
+            if (filtered.length === 0) {
+                projectsGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+            } else {
+                projectsGrid.classList.remove('hidden');
+                noResults.classList.add('hidden');
+                
+                projectsGrid.innerHTML = filtered.map(project => `
+                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col group hover:border-emerald-500/50 transition-all duration-300 hover:-translate-y-1">
+                        <!-- Cover Pattern Visual -->
+                        <div class="h-40 bg-gradient-to-br ${project.coverGradient} p-4 relative flex flex-col justify-between border-b border-slate-800">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md text-emerald-400 text-xs font-mono font-semibold border border-emerald-500/30">
+                                    ${project.grade}
+                                </span>
+                                <span class="px-2.5 py-1 rounded-lg ${project.status === 'Verified' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'} text-[11px] font-mono border flex items-center gap-1">
+                                    ${project.status === 'Verified' ? '<i data-lucide="shield-check" class="w-3 h-3"></i> Verified' : '<i data-lucide="clock" class="w-3 h-3"></i> In Progress'}
+                                </span>
+                            </div>
+                            
+                            <div>
+                                <span class="text-[11px] font-mono text-cyan-400 bg-slate-950/60 px-2 py-0.5 rounded border border-slate-800">
+                                    ${project.category}
+                                </span>
+                                <h3 class="text-lg font-bold text-white mt-1 group-hover:text-emerald-300 transition-colors line-clamp-1">
+                                    ${project.title}
+                                </h3>
+                            </div>
+                        </div>
+
+                        <!-- Card Body -->
+                        <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+                            <div>
+                                <p class="text-xs font-mono text-slate-400 mb-2">${project.subtitle}</p>
+                                <p class="text-slate-300 text-xs line-clamp-2 leading-relaxed">
+                                    ${project.description}
+                                </p>
+                            </div>
+
+                            <!-- Tech Stack Tags -->
+                            <div class="flex flex-wrap gap-1">
+                                ${project.techStack.slice(0, 5).map(t => `
+                                    <span class="text-[10px] font-mono bg-slate-900 text-slate-400 px-2 py-0.5 rounded border border-slate-800">
+                                        ${t}
+                                    </span>
+                                `).join('')}
+                                ${project.techStack.length > 5 ? `<span class="text-[10px] font-mono text-slate-500 px-1">+${project.techStack.length - 5}</span>` : ''}
+                            </div>
+
+                            <!-- Checklist Mini Indicators -->
+                            <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                                <div class="flex items-center gap-2">
+                                    <span title="VirtualHost" class="${project.checklist.virtualHost ? 'text-emerald-400' : 'text-slate-600'}">🌐 Domain</span>
+                                    <span title="MariaDB" class="${project.checklist.mariadb ? 'text-cyan-400' : 'text-slate-600'}">💾 DB</span>
+                                    <span title="HTTPS SSL" class="${project.checklist.security ? 'text-amber-400' : 'text-slate-600'}">🔒 SSL</span>
+                                    <span title="Backup Cron" class="${project.checklist.backup ? 'text-purple-400' : 'text-slate-600'}">⏰ Backup</span>
+                                </div>
+                                <span class="text-slate-500">ปี ${project.academicYear}</span>
+                            </div>
+
+                            <!-- Action Button -->
+                            <button onclick="openModal(${project.id})" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-200 text-xs font-semibold transition-all duration-300 flex items-center justify-center gap-2 group/btn border border-slate-700">
+                                <span>ดูรายละเอียดโปรเจกต์</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+
+                lucide.createIcons();
+            }
+        }
+
+        // Filter Events Setup
+        function setupFilterEvents() {
+            // Grade Buttons
+            document.querySelectorAll('#grade-filter-group .grade-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#grade-filter-group .grade-btn').forEach(b => {
+                        b.className = 'grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white';
+                    });
+                    e.currentTarget.className = 'grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20';
+                    currentGradeFilter = e.currentTarget.getAttribute('data-grade');
+                    renderProjects();
+                });
+            });
+
+            // Category Buttons
+            document.querySelectorAll('#category-filter-group .cat-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('#category-filter-group .cat-btn').forEach(b => {
+                        b.className = 'cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 hover:text-white';
+                    });
+                    e.currentTarget.className = 'cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    currentCatFilter = e.currentTarget.getAttribute('data-cat');
+                    renderProjects();
+                });
+            });
+
+            resetFiltersBtn.addEventListener('click', resetFilters);
+        }
+
+        // Real-time Search Setup
+        function setupSearchEvents() {
+            searchInput.addEventListener('input', (e) => {
+                searchQuery = e.target.value;
+                if (searchQuery) {
+                    clearSearchBtn.classList.remove('hidden');
+                } else {
+                    clearSearchBtn.classList.add('hidden');
+                }
+                renderProjects();
+            });
+
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                searchQuery = '';
+                clearSearchBtn.classList.add('hidden');
+                renderProjects();
+            });
+        }
+
+        function resetFilters() {
+            currentGradeFilter = 'all';
+            currentCatFilter = 'all';
+            searchQuery = '';
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden');
+
+            // Reset UI Active Classes
+            document.querySelectorAll('#grade-filter-group .grade-btn').forEach((b, idx) => {
+                b.className = idx === 0 
+                    ? 'grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                    : 'grade-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white';
+            });
+
+            document.querySelectorAll('#category-filter-group .cat-btn').forEach((b, idx) => {
+                b.className = idx === 0
+                    ? 'cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'cat-btn px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 hover:text-white';
+            });
+
+            renderProjects();
+        }
+
+        function updateActiveFilterBadgeText() {
+            let label = [];
+            if (currentGradeFilter !== 'all') label.push(currentGradeFilter);
+            if (currentCatFilter !== 'all') label.push(currentCatFilter);
+            if (searchQuery) label.push(`ค้นหา: "${searchQuery}"`);
+            
+            activeFilterBadge.innerText = label.length > 0 ? label.join(' + ') : 'ทั้งหมด';
+        }
+
+        // Modal Functionality
+        function openModal(projectId) {
+            const project = projectsData.find(p => p.id === projectId);
+            if (!project) return;
+
+            document.getElementById('modal-title').innerText = project.title;
+            document.getElementById('modal-subtitle').innerText = project.subtitle;
+            document.getElementById('modal-desc').innerText = project.description;
+            document.getElementById('modal-authors').innerText = project.authors;
+            document.getElementById('modal-std-id').innerText = project.studentId;
+            document.getElementById('modal-advisor').innerText = project.advisor;
+            document.getElementById('modal-year').innerText = project.academicYear;
+            
+            document.getElementById('modal-domain-link').innerText = `https://${project.domain}`;
+            document.getElementById('modal-domain-link').href = project.demoUrl;
+            document.getElementById('modal-conf-path').innerText = `/etc/nginx/conf.d/${project.domain.split('.')[0]}.conf`;
+
+            document.getElementById('modal-demo-btn').href = project.demoUrl;
+            document.getElementById('modal-github-btn').href = project.githubUrl;
+
+            // Badges
+            document.getElementById('modal-badges').innerHTML = `
+                <span class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-400 text-xs font-mono font-semibold border border-emerald-500/30">${project.grade}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-400 text-xs font-mono border border-cyan-500/30">${project.category}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-mono border border-slate-700">${project.status}</span>
+            `;
+
+            // Tech Stack Tags
+            document.getElementById('modal-tech-tags').innerHTML = project.techStack.map(t => `
+                <span class="text-xs font-mono bg-slate-800 text-emerald-300 px-2.5 py-1 rounded-md border border-slate-700">${t}</span>
+            `).join('');
+
+            // Server Checklist Grid inside Modal
+            document.getElementById('modal-checklist-grid').innerHTML = `
+                <div class="p-3 rounded-xl bg-slate-900 border ${project.checklist.virtualHost ? 'border-emerald-500/40 text-emerald-400' : 'border-slate-800 text-slate-500'} flex items-center justify-between text-xs font-mono">
+                    <span class="flex items-center gap-2"><i data-lucide="globe" class="w-4 h-4"></i> 1. Web & VirtualHost</span>
+                    <span>${project.checklist.virtualHost ? '✅ Ready' : '❌ Pending'}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900 border ${project.checklist.mariadb ? 'border-cyan-500/40 text-cyan-400' : 'border-slate-800 text-slate-500'} flex items-center justify-between text-xs font-mono">
+                    <span class="flex items-center gap-2"><i data-lucide="database" class="w-4 h-4"></i> 2. MariaDB Database</span>
+                    <span>${project.checklist.mariadb ? '✅ Ready' : '❌ Pending'}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900 border ${project.checklist.security ? 'border-amber-500/40 text-amber-400' : 'border-slate-800 text-slate-500'} flex items-center justify-between text-xs font-mono">
+                    <span class="flex items-center gap-2"><i data-lucide="shield-check" class="w-4 h-4"></i> 3. Security & UFW</span>
+                    <span>${project.checklist.security ? '✅ Ready (SSL 🔒)' : '❌ Pending'}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900 border ${project.checklist.backup ? 'border-purple-500/40 text-purple-400' : 'border-slate-800 text-slate-500'} flex items-center justify-between text-xs font-mono">
+                    <span class="flex items-center gap-2"><i data-lucide="hard-drive-download" class="w-4 h-4"></i> 4. Backup & Crontab</span>
+                    <span>${project.checklist.backup ? '✅ Ready' : '❌ Pending'}</span>
+                </div>
+            `;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Close Modal on Background Click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        // Copy Code Snippet Utility
+        function copyCode(btnElement, codeText) {
+            navigator.clipboard.writeText(codeText).then(() => {
+                const originalHtml = btnElement.innerHTML;
+                btnElement.innerHTML = `<i data-lucide="check" class="w-3 h-3 text-emerald-400"></i> Copied!`;
+                lucide.createIcons();
+                setTimeout(() => {
+                    btnElement.innerHTML = originalHtml;
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        // Interactive Audit Tool Logic
+        function initAuditTool() {
+            const savedState = localStorage.getItem('nvc_student_audit');
+            if (savedState) {
+                try {
+                    const parsed = JSON.parse(savedState);
+                    if (parsed.username) document.getElementById('audit-username').value = parsed.username;
+                    if (parsed.checks && Array.isArray(parsed.checks)) {
+                        document.querySelectorAll('.audit-chk').forEach((chk, idx) => {
+                            chk.checked = !!parsed.checks[idx];
+                        });
+                    }
+                } catch(e) {}
+            }
+            updateAuditProgress();
+            
+            document.getElementById('audit-username').addEventListener('input', updateAuditProgress);
+        }
+
+        function updateAuditProgress() {
+            const chks = document.querySelectorAll('.audit-chk');
+            let checkedCount = 0;
+            const checksState = [];
+
+            chks.forEach(chk => {
+                if (chk.checked) checkedCount++;
+                checksState.push(chk.checked);
+            });
+
+            const percent = Math.round((checkedCount / chks.length) * 100);
+            document.getElementById('audit-score').innerText = `${percent}%`;
+            document.getElementById('audit-progress-bar').style.width = `${percent}%`;
+
+            const username = document.getElementById('audit-username').value || 'std66001';
+
+            // Save state to LocalStorage
+            localStorage.setItem('nvc_student_audit', JSON.stringify({
+                username: username,
+                checks: checksState
+            }));
+
+            // Banner status message
+            const banner = document.getElementById('audit-status-banner');
+            if (percent === 100) {
+                banner.className = 'mt-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/40 text-sm flex items-center gap-3 text-emerald-300';
+                banner.innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400 shrink-0"></i> <span>ยอดเยี่ยม! ระบบเซิร์ฟเวอร์ของ <strong>${username}</strong> ผ่านเกณฑ์ประเมินสมบูรณ์ 100% พร้อมสำหรับการนำเสนอโปรเจกต์</span>`;
+            } else if (percent > 0) {
+                banner.className = 'mt-6 p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm flex items-center gap-3 text-slate-300';
+                banner.innerHTML = `<i data-lucide="clock" class="w-5 h-5 text-cyan-400 shrink-0"></i> <span>ระบบเซิร์ฟเวอร์ของ <strong>${username}</strong> อยู่ระหว่างการดำเนินการ (ผ่านแล้ว ${checkedCount}/${chks.length} ข้อ - ${percent}%)</span>`;
+            } else {
+                banner.className = 'mt-6 p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm flex items-center gap-3 text-slate-400';
+                banner.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5 text-amber-400 shrink-0"></i> <span>กรุณาเลือกเช็กลิสต์รายการที่ดำเนินการเสร็จสิ้นเพื่อประเมินความพร้อม</span>`;
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
