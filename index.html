@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PROJECT.LOG | คลังเก็บผลงานโปรเจกต์</title>
-    <meta name="description" content="Projects Archive - คลังเก็บผลงานโปรเจกต์ (Project Archive & Showcase)">
+    <title id="page-title">PROJECT.LOG | คลังเก็บผลงานโปรเจกต์</title>
+    <meta name="description" content="Projects Archive & Showcase System">
     
-    <!-- Google Fonts: Kanit & JetBrains Mono -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS CDN -->
+    <!-- Tailwind & Lucide -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <script>
+        // Check Session
+        const session = JSON.parse(localStorage.getItem('nvc_user_session') || '{}');
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -24,13 +26,6 @@
                     fontFamily: {
                         sans: ['Kanit', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        slate: {
-                            850: '#151f32',
-                            900: '#0f172a',
-                            950: '#020617',
-                        }
                     }
                 }
             }
@@ -41,7 +36,6 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #020617; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #10b981; }
         
         .glass-card {
             background: rgba(15, 23, 42, 0.7);
@@ -53,301 +47,306 @@
             backdrop-filter: blur(16px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
+
+        /* Dynamic Theme Classes */
+        .theme-text { color: var(--th-main); }
+        .theme-bg { background-color: var(--th-main); }
+        .theme-bg-soft { background-color: var(--th-soft); }
+        .theme-border { border-color: var(--th-main); }
+        .theme-border-soft { border-color: var(--th-soft); }
+        .theme-gradient { background-image: linear-gradient(to right, var(--th-grad1), var(--th-grad2)); }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col">
 
-    <!-- ================= NAVBAR ================= -->
+    <!-- Navbar -->
     <header class="sticky top-0 z-40 glass-nav shadow-lg shadow-slate-950/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <!-- Brand Logo -->
             <a href="index.html" class="flex items-center gap-3 group">
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-300">
+                <div class="w-11 h-11 rounded-xl theme-gradient flex items-center justify-center text-slate-950 font-bold shadow-lg group-hover:scale-105 transition-transform duration-300">
                     <i data-lucide="archive" class="w-6 h-6 stroke-[2.5]"></i>
                 </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-bold text-xl tracking-wide bg-gradient-to-r from-white via-slate-200 to-emerald-400 bg-clip-text text-transparent">PROJECT.LOG</span>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <span id="nav-brand" class="font-bold text-xl tracking-wide bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">PROJECT.LOG</span>
                 </div>
             </a>
 
-            <!-- GitHub Link -->
-            <div class="flex items-center gap-3">
-                <a href="https://github.com" target="_blank" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-sm font-medium transition-all flex items-center gap-2 group">
-                    <i data-lucide="github" class="w-4 h-4 group-hover:text-emerald-400 transition-colors"></i>
-                    <span class="hidden sm:inline">GitHub</span>
-                </a>
+            <!-- Auth Buttons -->
+            <div class="flex items-center gap-3" id="nav-auth">
+                <!-- Rendered via JS -->
             </div>
         </div>
     </header>
 
-    <!-- ================= HERO SECTION ================= -->
+    <!-- Hero Section -->
     <section class="relative pt-16 pb-16 overflow-hidden">
-        <!-- Glow Effect -->
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none"></div>
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] theme-bg-soft rounded-full blur-[120px] pointer-events-none opacity-50"></div>
 
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div class="text-center max-w-3xl mx-auto">
-                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight mb-4">
-                    คลังเก็บผลงานโปรเจกต์<br>
-                    <span class="bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent text-3xl sm:text-5xl mt-2 block">(Projects Archive)</span>
+                <h1 id="hero-title" class="text-4xl sm:text-6xl font-extrabold tracking-tight text-white leading-tight mb-4">
+                    กำลังโหลด...
                 </h1>
+                <p id="hero-desc" class="text-slate-400 text-sm sm:text-base mb-10 max-w-2xl mx-auto">
+                    <!-- Loaded via API -->
+                </p>
                 
-                <!-- Search Bar -->
-                <div class="mt-10 relative max-w-2xl mx-auto">
-                    <div class="relative flex items-center group">
-                        <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none group-focus-within:text-emerald-400 transition-colors"></i>
-                        <input type="text" id="search-input" placeholder="ค้นหาชื่อโปรเจกต์, เทคโนโลยี, แท็ก..." 
-                            class="w-full pl-12 pr-12 py-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm sm:text-base transition-all shadow-lg">
-                        <button id="clear-search" class="hidden absolute right-4 text-slate-400 hover:text-white transition-colors">
-                            <i data-lucide="x" class="w-5 h-5"></i>
-                        </button>
-                    </div>
+                <div class="relative flex items-center group max-w-2xl mx-auto">
+                    <i data-lucide="search" class="w-5 h-5 text-slate-400 absolute left-4 pointer-events-none group-focus-within:theme-text transition-colors"></i>
+                    <input type="text" id="search-input" placeholder="ค้นหาชื่อโปรเจกต์, เทคโนโลยี, แท็ก..." 
+                        class="w-full pl-12 pr-12 py-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none theme-border text-sm sm:text-base transition-all shadow-lg">
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- ================= MAIN CONTENT & FILTER BAR ================= -->
+    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 flex-1 w-full">
         
         <!-- Filter Bar -->
-        <div class="glass-card p-5 sm:p-6 rounded-2xl mb-10 space-y-5">
-            <div class="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-                
-                <!-- Grade Filter (ระดับชั้น) -->
-                <div class="flex-1">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono flex items-center gap-1.5">
-                        <i data-lucide="graduation-cap" class="w-4 h-4 text-emerald-400"></i> ระดับชั้น:
-                    </span>
-                    <div class="flex flex-wrap gap-2" id="grade-filter-group">
-                        <button data-grade="all" class="grade-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20">
-                            ทั้งหมด
-                        </button>
-                        <button data-grade="ปวช. 3" class="grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600">
-                            ปวช. 3 (โครงงาน)
-                        </button>
-                        <button data-grade="ปวส. 1" class="grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600">
-                            ปวส. 1
-                        </button>
-                        <button data-grade="ปวส. 2" class="grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600">
-                            ปวส. 2
-                        </button>
-                    </div>
+        <div class="glass-card p-5 sm:p-6 rounded-2xl mb-10 flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+            <div class="flex-1">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono flex items-center gap-1.5">
+                    <i data-lucide="graduation-cap" class="w-4 h-4 theme-text"></i> ระดับชั้น:
+                </span>
+                <div class="flex flex-wrap gap-2" id="grade-filter-group">
+                    <button data-grade="all" class="grade-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all theme-bg text-slate-950 shadow-lg">ทั้งหมด</button>
+                    <button data-grade="ปวช. 3" class="grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50">ปวช. 3</button>
+                    <button data-grade="ปวส. 1" class="grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50">ปวส. 1</button>
+                    <button data-grade="ปวส. 2" class="grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50">ปวส. 2</button>
                 </div>
+            </div>
 
-                <!-- Category Filter (ประเภทเทคโนโลยี) -->
-                <div class="flex-1 lg:pl-6 lg:border-l border-slate-800">
-                    <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono flex items-center gap-1.5">
-                        <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i> ประเภทเทคโนโลยี:
-                    </span>
-                    <div class="flex flex-wrap gap-2" id="category-filter-group">
-                        <button data-cat="all" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                            ทุกหมวดหมู่
-                        </button>
-                        <button data-cat="IoT & Hardware" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 hover:border-slate-600">
-                            IoT & Hardware
-                        </button>
-                        <button data-cat="Software & Automation" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 hover:border-slate-600">
-                            Software & Automation
-                        </button>
-                    </div>
+            <div class="flex-1 lg:pl-6 lg:border-l border-slate-800">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3 font-mono flex items-center gap-1.5">
+                    <i data-lucide="layers" class="w-4 h-4 theme-text"></i> ประเภทเทคโนโลยี:
+                </span>
+                <div class="flex flex-wrap gap-2" id="category-filter-group">
+                    <button data-cat="all" class="cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all theme-bg-soft theme-text theme-border-soft border">ทุกหมวดหมู่</button>
+                    <button data-cat="IoT & Hardware" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50">IoT & Hardware</button>
+                    <button data-cat="Software & Automation" class="cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50">Software & Automation</button>
                 </div>
-
             </div>
         </div>
 
-        <!-- Projects Grid Cards -->
+        <!-- Projects Grid -->
         <div id="projects-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
-            <!-- Cards rendered dynamically via JS -->
+            <!-- Rendered via JS -->
         </div>
 
         <!-- No Results -->
         <div id="no-results" class="hidden text-center py-20 glass-card rounded-2xl border border-slate-800">
             <i data-lucide="search-x" class="w-16 h-16 text-slate-600 mx-auto mb-4"></i>
             <h3 class="text-xl font-semibold text-slate-200">ไม่พบโปรเจกต์ที่ตรงกับเงื่อนไข</h3>
-            <p class="text-slate-400 mt-2 text-sm">ลองค้นหาด้วยคำอื่น หรือปรับตัวกรองใหม่อีกครั้ง</p>
-            <button onclick="resetFilters()" class="mt-6 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 text-sm font-semibold rounded-xl transition-colors border border-slate-700">
-                ล้างการค้นหาทั้งหมด
-            </button>
+            <button onclick="resetFilters()" class="mt-6 px-6 py-2.5 bg-slate-800 hover:bg-slate-700 theme-text text-sm font-semibold rounded-xl transition-colors border border-slate-700">ล้างการค้นหา</button>
         </div>
-
     </main>
 
-    <!-- ================= FOOTER ================= -->
+    <!-- Footer -->
     <footer class="bg-slate-950 border-t border-slate-900 py-8 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 font-mono">
-            <div>PROJECT.LOG &copy; 2026. All rights reserved.</div>
+            <div id="footer-text">Student Project Archive Showcase</div>
         </div>
     </footer>
 
-    <!-- ================= POP-UP MODAL ================= -->
+    <!-- Project Details Modal -->
     <div id="project-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md opacity-0 transition-opacity duration-300">
         <div class="glass-card w-full max-w-4xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col border border-slate-700/50 shadow-2xl transform scale-95 transition-transform duration-300" id="modal-content">
             
             <div class="p-5 sm:p-6 bg-slate-900 border-b border-slate-800 flex items-start justify-between">
                 <div class="pr-4">
                     <div class="flex flex-wrap items-center gap-2 mb-3" id="modal-badges"></div>
-                    <h2 class="text-xl sm:text-3xl font-bold text-white tracking-tight leading-tight" id="modal-title">ชื่อโปรเจกต์</h2>
+                    <h2 class="text-xl sm:text-3xl font-bold text-white tracking-tight leading-tight" id="modal-title"></h2>
                 </div>
-                <button onclick="closeModal()" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-colors shrink-0">
+                <button onclick="closeModal('project-modal')" class="p-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-colors shrink-0">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
 
             <div class="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 text-sm text-slate-300 bg-slate-950/50">
-                <!-- Image / Diagram Preview -->
-                <div class="rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center min-h-[250px] sm:min-h-[350px] relative" id="modal-image-container">
+                <div class="rounded-2xl overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center min-h-[250px] relative">
                     <img id="modal-image" src="" alt="Project Image" class="w-full h-full object-cover max-h-[400px]">
                 </div>
 
-                <!-- Description -->
                 <div>
-                    <h4 class="text-sm font-semibold text-emerald-400 flex items-center gap-2 mb-3">
-                        <i data-lucide="file-text" class="w-4 h-4"></i> รายละเอียดโปรเจกต์
-                    </h4>
+                    <h4 class="text-sm font-semibold theme-text flex items-center gap-2 mb-3"><i data-lucide="file-text" class="w-4 h-4"></i> รายละเอียดโปรเจกต์</h4>
                     <p id="modal-desc" class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/50 text-slate-300 leading-relaxed text-sm sm:text-base"></p>
                 </div>
 
-                <!-- Details Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/50">
-                        <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 font-mono">วันที่สร้าง</h4>
-                        <div class="flex items-center gap-2 text-slate-300 text-base" id="modal-date">
-                            <!-- Date here -->
-                        </div>
+                        <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 font-mono">ผู้จัดทำ</h4>
+                        <div class="flex items-center gap-2 text-slate-300 text-base" id="modal-author"></div>
                     </div>
                     <div class="bg-slate-900/80 p-5 rounded-2xl border border-slate-800/50">
-                        <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 font-mono">สถานะ</h4>
-                        <div id="modal-status">
-                            <!-- Status here -->
-                        </div>
+                        <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 font-mono">วันที่เผยแพร่</h4>
+                        <div class="flex items-center gap-2 text-slate-300 text-base" id="modal-date"></div>
                     </div>
                 </div>
 
-                <!-- Equipment / Tech Tags -->
                 <div>
-                    <h4 class="text-sm font-semibold text-emerald-400 flex items-center gap-2 mb-3">
-                        <i data-lucide="cpu" class="w-4 h-4"></i> เทคโนโลยีและอุปกรณ์ที่ใช้
-                    </h4>
+                    <h4 class="text-sm font-semibold theme-text flex items-center gap-2 mb-3"><i data-lucide="cpu" class="w-4 h-4"></i> เทคโนโลยีที่ใช้</h4>
                     <div class="flex flex-wrap gap-2" id="modal-tags"></div>
                 </div>
             </div>
 
-            <div class="p-5 sm:p-6 bg-slate-900 border-t border-slate-800 flex justify-between items-center">
-                <a id="modal-github" href="#" target="_blank" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium rounded-xl flex items-center gap-2 border border-slate-700 transition-colors">
-                    <i data-lucide="github" class="w-4 h-4"></i> Source Code
-                </a>
-                <button onclick="closeModal()" class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-sm font-bold rounded-xl transition-colors">ปิดหน้าต่าง</button>
+            <div class="p-5 sm:p-6 bg-slate-900 border-t border-slate-800 flex justify-end items-center">
+                <button onclick="closeModal('project-modal')" class="px-6 py-2.5 theme-bg text-slate-950 text-sm font-bold rounded-xl transition-colors opacity-90 hover:opacity-100">ปิดหน้าต่าง</button>
             </div>
-
         </div>
     </div>
 
-    <!-- ================= JAVASCRIPT ================= -->
-    <script>
-        // Mock Data
-        const projects = [
-            {
-                id: 1,
-                title: "ตู้อบเมล่อนอัจฉริยะ (Smart Melon Farm)",
-                level: "ปวช. 3",
-                category: "IoT & Hardware",
-                description: "ระบบควบคุมอุณหภูมิและความชื้นในโรงเรือนปลูกเมล่อนอัตโนมัติ สั่งการพัดลมและปั๊มน้ำผ่านบอร์ดไมโครคอนโทรลเลอร์ ดูข้อมูลแบบ Real-time บน Dashboard",
-                tags: ["ESP32", "DHT22 Sensor", "MQTT", "C++", "Relay Module"],
-                status: "Completed",
-                date: "15 พฤษภาคม 2026",
-                imageUrl: "https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?w=800&auto=format&fit=crop&q=80",
-                githubUrl: "#"
-            },
-            {
-                id: 2,
-                title: "ระบบยืม-คืนอุปกรณ์ห้องปฏิบัติการ (Inventory System)",
-                level: "ปวส. 1",
-                category: "Software & Automation",
-                description: "เว็บแอปพลิเคชันสำหรับจัดการการยืมและคืนอุปกรณ์ IT ของนักศึกษา มีระบบสแกน QR Code และสรุปรายงานการใช้งาน เพื่อช่วยลดเวลาการทำงานของเจ้าหน้าที่",
-                tags: ["Next.js", "Tailwind CSS", "Node.js", "PostgreSQL", "Prisma"],
-                status: "Completed",
-                date: "2 กรกฎาคม 2026",
-                imageUrl: "https://images.unsplash.com/photo-1581092160562-40aa08e78837?w=800&auto=format&fit=crop&q=80",
-                githubUrl: "#"
-            },
-            {
-                id: 3,
-                title: "สคริปต์ตรวจจับและบล็อก IP ผู้บุกรุก (Auto Ban Script)",
-                level: "ปวส. 2",
-                category: "Software & Automation",
-                description: "สคริปต์ Python ที่จะอ่าน Access Log และตรวจจับรูปแบบการโจมตี หากพบจะทำการเพิ่ม IP นั้นลงใน UFW Firewall ทันทีเพื่อป้องกันเซิร์ฟเวอร์โดนแฮ็ก",
-                tags: ["Python", "Linux", "UFW Firewall", "Bash Script", "Security"],
-                status: "Completed",
-                date: "28 กรกฎาคม 2026",
-                imageUrl: "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=800&auto=format&fit=crop&q=80",
-                githubUrl: "#"
-            },
-            {
-                id: 4,
-                title: "เครื่องให้อาหารสัตว์เลี้ยงผ่านมือถือ",
-                level: "ปวช. 3",
-                category: "IoT & Hardware",
-                description: "เครื่องให้อาหารสัตว์เลี้ยงอัตโนมัติที่สามารถตั้งเวลา หรือกดสั่งจ่ายอาหารผ่านแอปพลิเคชัน Line ได้โดยตรง พร้อมกล้องสำหรับดูพฤติกรรมสัตว์",
-                tags: ["Raspberry Pi", "Python", "Line API", "Servo Motor", "Camera"],
-                status: "In Progress",
-                date: "5 สิงหาคม 2026",
-                imageUrl: "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&auto=format&fit=crop&q=80",
-                githubUrl: "#"
-            },
-            {
-                id: 5,
-                title: "ระบบแจ้งเตือนอุณหภูมิห้อง Server",
-                level: "ปวส. 1",
-                category: "IoT & Hardware",
-                description: "โปรเจกต์มอนิเตอร์อุณหภูมิห้องเซิร์ฟเวอร์ หากความร้อนเกินกำหนดที่ตั้งไว้ จะส่งข้อความแจ้งเตือนเข้ากลุ่ม Line ทันที",
-                tags: ["ESP8266", "Line Notify", "C++", "Thermistor", "IoT"],
-                status: "Completed",
-                date: "12 มิถุนายน 2026",
-                imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&auto=format&fit=crop&q=80",
-                githubUrl: "#"
-            },
-            {
-                id: 6,
-                title: "API สำหรับตรวจสอบตารางเรียน (Schedule API)",
-                level: "ปวส. 2",
-                category: "Software & Automation",
-                description: "RESTful API พัฒนาด้วย Go สำหรับให้นักศึกษาใช้เช็คตารางเรียนและห้องเรียน รองรับการดึงข้อมูลแบบรวดเร็วด้วย Redis Cache",
-                tags: ["Golang", "Redis", "Docker", "REST API", "Gin"],
-                status: "In Progress",
-                date: "1 สิงหาคม 2026",
-                imageUrl: "https://images.unsplash.com/photo-1623282033815-40b05d96c903?w=800&auto=format&fit=crop&q=80",
-                githubUrl: "#"
-            }
-        ];
+    <!-- Submit Project Modal (For Students) -->
+    <div id="submit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md opacity-0 transition-opacity duration-300">
+        <div class="glass-card w-full max-w-2xl max-h-[90vh] rounded-2xl overflow-hidden flex flex-col border border-slate-700/50 shadow-2xl transform scale-95 transition-transform duration-300">
+            
+            <div class="p-5 bg-slate-900 border-b border-slate-800 flex items-start justify-between">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2"><i data-lucide="upload-cloud" class="w-5 h-5 theme-text"></i> ส่งผลงานโปรเจกต์ใหม่</h2>
+                <button onclick="closeModal('submit-modal')" class="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
 
+            <div class="p-6 overflow-y-auto flex-1 bg-slate-950/50">
+                <form id="submit-form" onsubmit="submitProject(event)" class="space-y-4">
+                    
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ชื่อโปรเจกต์ (Project Title)</label>
+                        <input type="text" id="sp-title" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none theme-border text-sm">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">หมวดหมู่ (Category)</label>
+                            <select id="sp-cat" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none theme-border text-sm">
+                                <option value="IoT & Hardware">IoT & Hardware</option>
+                                <option value="Software & Automation">Software & Automation</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ลิงก์รูปภาพตัวอย่าง (Image URL)</label>
+                            <input type="url" id="sp-img" placeholder="https://..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none theme-border text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">แท็กเทคโนโลยี (Tags) - คั่นด้วยลูกน้ำ</label>
+                        <input type="text" id="sp-tags" placeholder="เช่น Node.js, React, ESP32" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none theme-border text-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">คำอธิบายรายละเอียด (Description)</label>
+                        <textarea id="sp-desc" rows="4" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none theme-border text-sm"></textarea>
+                    </div>
+
+                    <div class="pt-4 mt-2 border-t border-slate-800 flex justify-end gap-3">
+                        <button type="button" onclick="closeModal('submit-modal')" class="px-5 py-2.5 bg-slate-800 text-white text-sm font-semibold rounded-xl hover:bg-slate-700 transition-colors">ยกเลิก</button>
+                        <button type="submit" id="btn-sp-submit" class="px-6 py-2.5 theme-bg text-slate-950 text-sm font-bold rounded-xl shadow-lg transition-colors opacity-90 hover:opacity-100 flex items-center gap-2">
+                            <i data-lucide="send" class="w-4 h-4"></i> ส่งผลงาน
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        const API_URL = 'api.php';
+        let projects = [];
         let currentGrade = 'all';
         let currentCategory = 'all';
         let searchQuery = '';
 
         document.addEventListener('DOMContentLoaded', () => {
-            renderProjects();
+            setupAuthUI();
+            fetchSettings();
+            fetchProjects();
             setupFilterEvents();
             setupSearchEvents();
-            lucide.createIcons();
         });
 
-        // Helper function for Level Badge Color
-        function getLevelBadgeClass(level) {
-            if(level.includes('ปวช. 3')) return 'bg-sky-500/10 text-sky-400 border-sky-500/30';
-            if(level.includes('ปวส. 1')) return 'bg-purple-500/10 text-purple-400 border-purple-500/30';
-            if(level.includes('ปวส. 2')) return 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30';
-            return 'bg-slate-500/10 text-slate-400 border-slate-500/30';
+        // --- UI & Theme Config ---
+        function applyTheme(themeName) {
+            const root = document.documentElement;
+            if (themeName === 'cyberpunk') {
+                root.style.setProperty('--th-main', '#eab308'); // yellow-500
+                root.style.setProperty('--th-soft', 'rgba(234, 179, 8, 0.1)');
+                root.style.setProperty('--th-grad1', '#eab308');
+                root.style.setProperty('--th-grad2', '#ec4899'); // pink-500
+            } else if (themeName === 'techblue') {
+                root.style.setProperty('--th-main', '#06b6d4'); // cyan-500
+                root.style.setProperty('--th-soft', 'rgba(6, 182, 212, 0.1)');
+                root.style.setProperty('--th-grad1', '#2563eb'); // blue-600
+                root.style.setProperty('--th-grad2', '#22d3ee'); // cyan-400
+            } else { // emerald default
+                root.style.setProperty('--th-main', '#10b981'); // emerald-500
+                root.style.setProperty('--th-soft', 'rgba(16, 185, 129, 0.1)');
+                root.style.setProperty('--th-grad1', '#059669'); // emerald-600
+                root.style.setProperty('--th-grad2', '#34d399'); // emerald-400
+            }
         }
 
-        // Helper function for Status Badge
-        function getStatusBadge(status) {
-            if(status === 'Completed') {
-                return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold"><div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> เสร็จสมบูรณ์</span>';
+        async function fetchSettings() {
+            try {
+                const res = await fetch(`${API_URL}?action=get_settings`);
+                const data = await res.json();
+                if(data.status === 'success') {
+                    const s = data.data;
+                    document.getElementById('nav-brand').innerText = s.site_title || 'PROJECT.LOG';
+                    document.getElementById('page-title').innerText = `${s.site_title || 'PROJECT.LOG'} | คลังเก็บผลงาน`;
+                    document.getElementById('footer-text').innerText = `${s.site_title} © 2026`;
+                    
+                    document.getElementById('hero-title').innerHTML = (s.hero_title || 'คลังเก็บผลงานโปรเจกต์').replace(/\((.*?)\)/, '<span class="theme-gradient bg-clip-text text-transparent text-3xl sm:text-5xl mt-2 block">($1)</span>');
+                    document.getElementById('hero-desc').innerText = s.hero_desc || '';
+                    
+                    applyTheme(s.theme || 'emerald');
+                }
+            } catch (err) {
+                applyTheme('emerald');
             }
-            return '<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold"><div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div> กำลังพัฒนา</span>';
+        }
+
+        // --- Auth UI ---
+        function setupAuthUI() {
+            const authContainer = document.getElementById('nav-auth');
+            
+            if (session.isLoggedIn) {
+                let html = `<span class="text-xs text-slate-400 font-mono hidden sm:inline mr-2">Hi, ${session.username}</span>`;
+                
+                if (session.role === 'admin') {
+                    html += `<a href="admin.html" class="px-4 py-2 rounded-xl bg-slate-800 text-white hover:bg-slate-700 text-sm font-medium transition-colors border border-slate-700">เข้าสู่แดชบอร์ด</a>`;
+                } else {
+                    html += `<button onclick="openModal('submit-modal')" class="px-4 py-2 rounded-xl theme-bg text-slate-950 text-sm font-bold transition-colors opacity-90 hover:opacity-100 flex items-center gap-1.5"><i data-lucide="plus-circle" class="w-4 h-4"></i> ส่งผลงาน</button>`;
+                }
+                
+                html += `<button onclick="logout()" class="p-2 rounded-xl bg-slate-900 text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors" title="ออกจากระบบ"><i data-lucide="log-out" class="w-4 h-4"></i></button>`;
+                authContainer.innerHTML = html;
+            } else {
+                authContainer.innerHTML = `
+                    <a href="login.html" class="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-sm font-semibold transition-colors flex items-center gap-2">
+                        <i data-lucide="log-in" class="w-4 h-4 theme-text"></i> <span>เข้าสู่ระบบ</span>
+                    </a>
+                `;
+            }
+            lucide.createIcons();
+        }
+
+        function logout() {
+            localStorage.removeItem('nvc_user_session');
+            window.location.reload();
+        }
+
+        // --- Projects Logic ---
+        async function fetchProjects() {
+            try {
+                const res = await fetch(`${API_URL}?action=get_projects&status=approved`);
+                const data = await res.json();
+                if(data.status === 'success') {
+                    projects = data.data;
+                    renderProjects();
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
 
         function renderProjects() {
@@ -362,7 +361,7 @@
                 const matchSearch = !q || 
                     p.title.toLowerCase().includes(q) ||
                     p.description.toLowerCase().includes(q) ||
-                    p.tags.some(t => t.toLowerCase().includes(q));
+                    (p.tags && p.tags.some(t => t.toLowerCase().includes(q)));
 
                 return matchGrade && matchCat && matchSearch;
             });
@@ -375,41 +374,32 @@
                 noRes.classList.add('hidden');
 
                 grid.innerHTML = filtered.map(p => `
-                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col group hover:border-emerald-500/40 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-900/10">
-                        <!-- Card Image Header -->
+                    <div class="glass-card rounded-2xl overflow-hidden flex flex-col group hover:theme-border transition-all duration-300">
                         <div class="h-48 sm:h-52 bg-slate-900 relative overflow-hidden">
-                            <img src="${p.imageUrl}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90">
+                            <img src="${p.image_url || 'https://via.placeholder.com/800x600/0f172a/10b981?text=No+Image'}" alt="${p.title}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90">
                             <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
-                            
-                            <!-- Badges -->
                             <div class="absolute top-4 left-4 right-4 flex justify-between items-start">
-                                <span class="px-3 py-1.5 ${getLevelBadgeClass(p.level)} text-xs font-bold rounded-lg border shadow-sm backdrop-blur-md">
-                                    ${p.level}
-                                </span>
-                                ${getStatusBadge(p.status)}
+                                <span class="px-3 py-1.5 bg-slate-900/80 text-white text-xs font-bold rounded-lg border border-slate-700 backdrop-blur-md">${p.level}</span>
                             </div>
                         </div>
 
-                        <!-- Card Body -->
                         <div class="p-6 flex-1 flex flex-col space-y-4 bg-slate-900/50">
                             <div class="flex-1">
-                                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:text-emerald-400 transition-colors line-clamp-2 leading-tight">${p.title}</h3>
+                                <h3 class="text-lg sm:text-xl font-bold text-white group-hover:theme-text transition-colors line-clamp-2 leading-tight">${p.title}</h3>
                                 <p class="text-slate-400 text-sm mt-3 line-clamp-3 leading-relaxed">${p.description}</p>
                             </div>
 
-                            <!-- Tags -->
                             <div class="flex flex-wrap gap-2 pt-2">
-                                ${p.tags.slice(0,4).map(t => `<span class="text-[11px] font-medium bg-slate-800 text-slate-300 px-2 py-1 rounded-md border border-slate-700">${t}</span>`).join('')}
-                                ${p.tags.length > 4 ? `<span class="text-[11px] font-medium bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">+${p.tags.length - 4}</span>` : ''}
+                                ${p.tags.slice(0,3).map(t => `<span class="text-[11px] font-medium bg-slate-800 text-slate-300 px-2 py-1 rounded-md border border-slate-700">${t}</span>`).join('')}
+                                ${p.tags.length > 3 ? `<span class="text-[11px] font-medium bg-slate-800 text-slate-400 px-2 py-1 rounded-md border border-slate-700">+${p.tags.length - 3}</span>` : ''}
                             </div>
                             
-                            <!-- Card Footer -->
                             <div class="pt-5 mt-auto border-t border-slate-800/80 flex items-center justify-between">
                                 <div class="text-xs text-slate-500 font-mono flex items-center gap-1.5">
-                                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${p.date}
+                                    <i data-lucide="user" class="w-3.5 h-3.5"></i> ${p.author_name || 'System'}
                                 </div>
-                                <button onclick="openModal(${p.id})" class="px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 flex items-center gap-1">
-                                    ดูรายละเอียด <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                <button onclick="openProjectModal(${p.id})" class="px-4 py-2 theme-bg text-slate-950 text-xs font-bold rounded-xl transition-all shadow-lg opacity-90 hover:opacity-100 flex items-center gap-1">
+                                    รายละเอียด <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
                         </div>
@@ -419,30 +409,27 @@
             }
         }
 
+        // --- Filters ---
         function setupFilterEvents() {
-            // Grade buttons
-            const gradeGroup = document.getElementById('grade-filter-group');
-            gradeGroup.querySelectorAll('.grade-btn').forEach(btn => {
+            const gGroup = document.getElementById('grade-filter-group');
+            gGroup.querySelectorAll('.grade-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    gradeGroup.querySelectorAll('.grade-btn').forEach(b => {
-                        b.className = 'grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600';
+                    gGroup.querySelectorAll('.grade-btn').forEach(b => {
+                        b.className = 'grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50';
                     });
-                    e.currentTarget.className = 'grade-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20';
-                    
+                    e.currentTarget.className = 'grade-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all theme-bg text-slate-950 shadow-lg';
                     currentGrade = e.currentTarget.getAttribute('data-grade');
                     renderProjects();
                 });
             });
 
-            // Category buttons
-            const catGroup = document.getElementById('category-filter-group');
-            catGroup.querySelectorAll('.cat-btn').forEach(btn => {
+            const cGroup = document.getElementById('category-filter-group');
+            cGroup.querySelectorAll('.cat-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
-                    catGroup.querySelectorAll('.cat-btn').forEach(b => {
-                        b.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 hover:border-slate-600';
+                    cGroup.querySelectorAll('.cat-btn').forEach(b => {
+                        b.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50';
                     });
-                    e.currentTarget.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                    
+                    e.currentTarget.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all theme-bg-soft theme-text theme-border-soft border';
                     currentCategory = e.currentTarget.getAttribute('data-cat');
                     renderProjects();
                 });
@@ -451,19 +438,8 @@
 
         function setupSearchEvents() {
             const input = document.getElementById('search-input');
-            const clear = document.getElementById('clear-search');
-
             input.addEventListener('input', (e) => {
                 searchQuery = e.target.value;
-                if (searchQuery) clear.classList.remove('hidden');
-                else clear.classList.add('hidden');
-                renderProjects();
-            });
-
-            clear.addEventListener('click', () => {
-                input.value = '';
-                searchQuery = '';
-                clear.classList.add('hidden');
                 renderProjects();
             });
         }
@@ -472,85 +448,103 @@
             currentGrade = 'all';
             currentCategory = 'all';
             searchQuery = '';
-            
             document.getElementById('search-input').value = '';
-            document.getElementById('clear-search').classList.add('hidden');
             
-            const gradeGroup = document.getElementById('grade-filter-group');
-            gradeGroup.querySelectorAll('.grade-btn').forEach(b => {
-                b.className = 'grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50 hover:border-slate-600';
-            });
-            gradeGroup.querySelector('[data-grade="all"]').className = 'grade-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-emerald-500 text-slate-950 shadow-lg shadow-emerald-500/20';
+            document.querySelectorAll('.grade-btn').forEach(b => b.className = 'grade-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/50');
+            document.querySelector('.grade-btn[data-grade="all"]').className = 'grade-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all theme-bg text-slate-950 shadow-lg';
 
-            const catGroup = document.getElementById('category-filter-group');
-            catGroup.querySelectorAll('.cat-btn').forEach(b => {
-                b.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50 hover:border-slate-600';
-            });
-            catGroup.querySelector('[data-cat="all"]').className = 'cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+            document.querySelectorAll('.cat-btn').forEach(b => b.className = 'cat-btn px-4 py-2 rounded-xl text-sm font-medium transition-all bg-slate-800 text-slate-300 hover:text-white border border-slate-700/50');
+            document.querySelector('.cat-btn[data-cat="all"]').className = 'cat-btn px-4 py-2 rounded-xl text-sm font-semibold transition-all theme-bg-soft theme-text theme-border-soft border';
 
             renderProjects();
         }
 
-        // Modal Functions
-        const modal = document.getElementById('project-modal');
-        const modalContent = document.getElementById('modal-content');
-
+        // --- Modals ---
         function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove('hidden');
+            setTimeout(() => m.classList.remove('opacity-0'), 10);
+            m.querySelector('> div').classList.remove('scale-95');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add('opacity-0');
+            m.querySelector('> div').classList.add('scale-95');
+            setTimeout(() => {
+                m.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        function openProjectModal(id) {
             const p = projects.find(item => item.id === id);
             if (!p) return;
 
             document.getElementById('modal-title').innerText = p.title;
             document.getElementById('modal-desc').innerText = p.description;
-            document.getElementById('modal-image').src = p.imageUrl;
-            document.getElementById('modal-github').href = p.githubUrl;
+            document.getElementById('modal-image').src = p.image_url || 'https://via.placeholder.com/800x600/0f172a/10b981?text=No+Image';
             
-            document.getElementById('modal-date').innerHTML = `<i data-lucide="calendar-days" class="w-5 h-5 text-emerald-500"></i> ${p.date}`;
-            document.getElementById('modal-status').innerHTML = getStatusBadge(p.status);
+            document.getElementById('modal-author').innerHTML = `<i data-lucide="user" class="w-5 h-5 theme-text"></i> ${p.author_name || 'System'}`;
+            document.getElementById('modal-date').innerHTML = `<i data-lucide="calendar-days" class="w-5 h-5 theme-text"></i> ${new Date(p.created_at).toLocaleDateString('th-TH')}`;
 
             document.getElementById('modal-badges').innerHTML = `
-                <span class="px-3 py-1 ${getLevelBadgeClass(p.level)} text-xs font-bold rounded-lg border">${p.level}</span>
-                <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-bold rounded-lg border border-cyan-500/30">${p.category}</span>
+                <span class="px-3 py-1 bg-slate-800 text-white text-xs font-bold rounded-lg border border-slate-700">${p.level}</span>
+                <span class="px-3 py-1 theme-bg-soft theme-text text-xs font-bold rounded-lg theme-border-soft border">${p.category}</span>
             `;
 
-            document.getElementById('modal-tags').innerHTML = p.tags.map(t => `
-                <span class="text-sm font-medium bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">${t}</span>
-            `).join('');
-
-            // Show Modal with Animation
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
-            }, 10);
+            document.getElementById('modal-tags').innerHTML = p.tags.map(t => `<span class="text-sm font-medium bg-slate-800 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700">${t}</span>`).join('');
             
+            openModal('project-modal');
+        }
+
+        // --- Submit Project ---
+        async function submitProject(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-sp-submit');
+            
+            if(!session.id) {
+                alert('Session หมดอายุ กรุณาล็อกอินใหม่');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> กำลังส่ง...`;
+
+            const payload = {
+                user_id: session.id,
+                level: session.level || 'ปวช. 3',
+                title: document.getElementById('sp-title').value,
+                category: document.getElementById('sp-cat').value,
+                image_url: document.getElementById('sp-img').value,
+                tags: document.getElementById('sp-tags').value.split(',').map(s=>s.trim()).filter(Boolean),
+                description: document.getElementById('sp-desc').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}?action=submit_project`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    alert('ส่งผลงานสำเร็จ! โปรดรอแอดมินตรวจสอบ');
+                    document.getElementById('submit-form').reset();
+                    closeModal('submit-modal');
+                } else {
+                    alert(data.message);
+                }
+            } catch(err) {
+                alert('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = `<i data-lucide="send" class="w-4 h-4"></i> ส่งผลงาน`;
             lucide.createIcons();
-            document.body.style.overflow = 'hidden';
         }
-
-        function closeModal() {
-            modal.classList.add('opacity-0');
-            modalContent.classList.add('scale-95');
-            
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }, 300);
-        }
-
-        // Close on clicking outside
-        modal.addEventListener('click', (e) => {
-            if(e.target === modal) {
-                closeModal();
-            }
-        });
-        
-        // Escape key to close
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-
     </script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | ระบบจัดการโปรเจกต์นักศึกษา</title>
+    <title>Admin Dashboard | Project Archive</title>
     
     <!-- Google Fonts & Tailwind -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,12 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <script>
+        // Check Admin Session Early
+        const session = JSON.parse(localStorage.getItem('nvc_user_session') || '{}');
+        if (session.role !== 'admin') {
+            window.location.href = 'login.html';
+        }
+
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -27,307 +33,328 @@
         }
     </script>
     <style>
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #090d16; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        
         .glass-card {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
         .glass-nav {
-            background: rgba(9, 13, 22, 0.85);
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(2, 6, 23, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-emerald-500 selection:text-slate-950">
 
-    <!-- NAVBAR -->
+    <!-- Navbar -->
     <header class="sticky top-0 z-40 glass-nav">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-            <a href="index.html" class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-cyan-500/20">
-                    <i data-lucide="layout-dashboard" class="w-6 h-6 stroke-[2.5]"></i>
-                </div>
-                <div>
-                    <span class="font-bold text-xl tracking-wide bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">Project Management Dashboard</span>
-                    <p class="text-xs text-slate-400">ระบบจัดการโปรเจกต์นักศึกษา (CRUD Operations)</p>
-                </div>
-            </a>
-
-            <nav class="hidden md:flex items-center gap-1 bg-slate-900/90 p-1.5 rounded-full border border-slate-800">
-                <a href="index.html" class="px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors flex items-center gap-2">
-                    <i data-lucide="folder-git-2" class="w-4 h-4"></i> คลังโปรเจกต์
-                </a>
-                <a href="checklist.html" class="px-4 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Server Audit
-                </a>
-                <a href="admin.html" class="px-4 py-2 rounded-full text-sm font-semibold text-cyan-400 bg-slate-800 transition-colors flex items-center gap-2">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-cyan-400"></i> แดชบอร์ดจัดการ
-                </a>
-            </nav>
-
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="hidden sm:block text-right">
-                    <div id="session-user" class="text-xs font-bold text-emerald-400 font-mono">admin</div>
-                    <div class="text-[10px] text-slate-500">Administrator</div>
+                <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950">
+                    <i data-lucide="shield" class="w-5 h-5"></i>
                 </div>
-                <button onclick="handleLogout()" class="p-2.5 rounded-xl bg-slate-900 hover:bg-red-500/20 text-slate-400 hover:text-red-400 border border-slate-800 transition-colors" title="ออกจากระบบ">
-                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                <span class="font-bold text-lg text-white">Admin Dashboard</span>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <span class="text-xs text-slate-400 font-mono hidden sm:inline" id="admin-name"></span>
+                <a href="index.html" target="_blank" class="text-xs text-slate-300 hover:text-emerald-400 flex items-center gap-1 transition-colors">
+                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> ดูหน้าเว็บจริง
+                </a>
+                <button onclick="logout()" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs font-semibold transition-colors flex items-center gap-1 border border-red-500/20">
+                    <i data-lucide="log-out" class="w-3.5 h-3.5"></i> ออกจากระบบ
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- DASHBOARD CONTENT -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
         
-        <!-- Action Header -->
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 glass-card p-6 rounded-3xl">
-            <div>
-                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
-                    <i data-lucide="folder-plus" class="w-6 h-6 text-emerald-400"></i>
-                    รายการโปรเจกต์ในระบบ
-                </h1>
-                <p class="text-xs text-slate-400 mt-1">สามารถเพิ่ม แก้ไข และลบข้อมูลโปรเจกต์นักศึกษาได้ทันที</p>
-            </div>
-            <button onclick="openFormModal()" class="px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2">
-                <i data-lucide="plus" class="w-5 h-5"></i>
-                <span>เพิ่มโปรเจกต์ใหม่</span>
+        <!-- Sidebar Menu -->
+        <aside class="lg:col-span-1 space-y-2">
+            <button onclick="switchTab('approvals')" id="tab-approvals" class="w-full text-left px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold text-sm flex items-center gap-2 transition-all">
+                <i data-lucide="clipboard-check" class="w-4 h-4"></i> จัดการโปรเจกต์ (Approvals)
             </button>
-        </div>
+            <button onclick="switchTab('config')" id="tab-config" class="w-full text-left px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-semibold text-sm flex items-center gap-2 transition-all">
+                <i data-lucide="palette" class="w-4 h-4"></i> ปรับแต่ง UI หน้าเว็บ (Config)
+            </button>
+        </aside>
 
-        <!-- Table Container -->
-        <div class="glass-card rounded-3xl overflow-hidden border border-slate-800">
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-900/80 border-b border-slate-800 text-slate-400 text-xs font-mono uppercase">
-                            <th class="p-4">ID</th>
-                            <th class="p-4">ชื่อโปรเจกต์</th>
-                            <th class="p-4">ระดับชั้น</th>
-                            <th class="p-4">ประเภทเทคโนโลยี</th>
-                            <th class="p-4">สถานะ</th>
-                            <th class="p-4 text-center">จัดการ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="admin-table-body" class="divide-y divide-slate-800/60 text-sm">
-                        <!-- Table Rows rendered dynamically -->
-                    </tbody>
-                </table>
+        <!-- Main Content Area -->
+        <div class="lg:col-span-3">
+            
+            <!-- Tab: Approvals -->
+            <div id="content-approvals" class="space-y-6">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="list-todo" class="w-5 h-5 text-emerald-400"></i> รอการตรวจสอบ
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-6">รายการโปรเจกต์ที่นักศึกษาส่งเข้ามาใหม่</p>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="text-xs text-slate-500 uppercase font-mono border-b border-slate-800">
+                                    <th class="pb-3 pr-4 font-semibold">ชื่อโปรเจกต์</th>
+                                    <th class="pb-3 px-4 font-semibold">ผู้ส่ง (Author)</th>
+                                    <th class="pb-3 px-4 font-semibold">ระดับชั้น</th>
+                                    <th class="pb-3 px-4 font-semibold text-center">สถานะ</th>
+                                    <th class="pb-3 pl-4 font-semibold text-right">การจัดการ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="projects-table-body" class="text-sm divide-y divide-slate-800/50">
+                                <!-- Dynamic Rows -->
+                                <tr><td colspan="5" class="py-8 text-center text-slate-500">กำลังโหลดข้อมูล...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-        </div>
 
+            <!-- Tab: UI Configurator -->
+            <div id="content-config" class="hidden space-y-6">
+                <div class="glass-card p-6 rounded-2xl">
+                    <h2 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+                        <i data-lucide="layout-template" class="w-5 h-5 text-cyan-400"></i> No-Code UI Configurator
+                    </h2>
+                    <p class="text-xs text-slate-400 mb-6">ปรับแต่งข้อความและโทนสีของหน้าเว็บหลัก (index.html) โดยไม่ต้องแก้ไขโค้ด</p>
+
+                    <form id="settings-form" onsubmit="saveSettings(event)" class="space-y-5">
+                        
+                        <!-- Site Title -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ชื่อเว็บ (Site Title / Brand Name)</label>
+                            <input type="text" id="cfg-site-title" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 text-sm">
+                        </div>
+
+                        <!-- Hero Title -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">หัวข้อหลัก (Hero Title)</label>
+                            <input type="text" id="cfg-hero-title" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 text-sm">
+                        </div>
+
+                        <!-- Hero Description -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">คำอธิบายย่อย (Hero Description)</label>
+                            <textarea id="cfg-hero-desc" rows="2" required class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-cyan-500 text-sm"></textarea>
+                        </div>
+
+                        <!-- Theme Selection -->
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 font-mono mb-2">โทนสีหลัก (Theme Palette)</label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="theme" value="emerald" class="peer sr-only">
+                                    <div class="p-3 rounded-xl border border-slate-700 bg-slate-900 peer-checked:border-emerald-500 peer-checked:bg-emerald-500/10 transition-all text-center">
+                                        <div class="w-full h-8 rounded bg-gradient-to-r from-emerald-600 to-emerald-400 mb-2"></div>
+                                        <span class="text-xs font-semibold text-slate-300">Slate / Emerald</span>
+                                    </div>
+                                </label>
+
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="theme" value="cyberpunk" class="peer sr-only">
+                                    <div class="p-3 rounded-xl border border-slate-700 bg-slate-900 peer-checked:border-yellow-500 peer-checked:bg-yellow-500/10 transition-all text-center">
+                                        <div class="w-full h-8 rounded bg-gradient-to-r from-yellow-500 to-pink-500 mb-2"></div>
+                                        <span class="text-xs font-semibold text-slate-300">Cyberpunk Dark</span>
+                                    </div>
+                                </label>
+
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="theme" value="techblue" class="peer sr-only">
+                                    <div class="p-3 rounded-xl border border-slate-700 bg-slate-900 peer-checked:border-blue-500 peer-checked:bg-blue-500/10 transition-all text-center">
+                                        <div class="w-full h-8 rounded bg-gradient-to-r from-blue-600 to-cyan-400 mb-2"></div>
+                                        <span class="text-xs font-semibold text-slate-300">Tech Blue</span>
+                                    </div>
+                                </label>
+
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800 flex justify-end">
+                            <button type="submit" id="btn-save-cfg" class="px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-sm rounded-xl transition-all shadow-lg flex items-center gap-2">
+                                <i data-lucide="save" class="w-4 h-4"></i> บันทึกการตั้งค่า
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
     </main>
 
-    <!-- CRUD FORM MODAL -->
-    <div id="form-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-        <div class="glass-card w-full max-w-2xl max-h-[90vh] rounded-3xl overflow-hidden flex flex-col border border-slate-700 shadow-2xl">
-            
-            <div class="p-6 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-                <h3 class="text-lg font-bold text-white flex items-center gap-2" id="modal-form-title">
-                    <i data-lucide="edit-3" class="w-5 h-5 text-emerald-400"></i> เพิ่มข้อมูลโปรเจกต์
-                </h3>
-                <button onclick="closeFormModal()" class="p-2 bg-slate-800 text-slate-400 hover:text-white rounded-xl">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <form id="project-form" onsubmit="saveProject(event)" class="p-6 overflow-y-auto space-y-4 text-sm flex-1">
-                <input type="hidden" id="edit-id">
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ชื่อโปรเจกต์ / โครงงาน:</label>
-                    <input type="text" id="form-title" required placeholder="เช่น ระบบบริหารจัดการคลังสินค้าออนไลน์" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ระดับชั้น:</label>
-                        <select id="form-level" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
-                            <option value="ปวช. 1-2">ปวช. 1-2</option>
-                            <option value="ปวช. 3">ปวช. 3 (โครงงาน)</option>
-                            <option value="ปวส. 1">ปวส. 1</option>
-                            <option value="ปวส. 2">ปวส. 2 (นวัตกรรม)</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ประเภทเทคโนโลยี:</label>
-                        <select id="form-category" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
-                            <option value="IoT & Embedded Systems">IoT & Embedded Systems</option>
-                            <option value="Web & Database">Web & Database</option>
-                            <option value="Python & Automation">Python & Automation</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">อุปกรณ์ / ภาษา / Tags ที่ใช้ (คั่นด้วยจุลภาค ,):</label>
-                    <input type="text" id="form-tags" placeholder="เช่น ESP32, Sensor DHT22, MariaDB, Python" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500 font-mono">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">รายละเอียดและวัตถุประสงค์โปรเจกต์:</label>
-                    <textarea id="form-desc" rows="3" required placeholder="อธิบายรายละเอียดการทำงาน..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500"></textarea>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">URL รูปวงจร / ไดอะแกรม (Circuit / Diagram Image URL):</label>
-                    <input type="url" id="form-image" placeholder="https://images.unsplash.com/photo-..." class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500 font-mono">
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">ลิงก์ GitHub Code:</label>
-                        <input type="url" id="form-github" placeholder="https://github.com/username/project" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500 font-mono">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-300 font-mono mb-1">สถานะโปรเจกต์:</label>
-                        <select id="form-status" class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-emerald-500">
-                            <option value="Completed">Completed (เสร็จสมบูรณ์)</option>
-                            <option value="In Progress">In Progress (กำลังดำเนินการ)</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="pt-4 flex justify-end gap-3 border-t border-slate-800">
-                    <button type="button" onclick="closeFormModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs">ยกเลิก</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-500 text-slate-950 font-bold rounded-xl text-xs hover:bg-emerald-400">บันทึกข้อมูล</button>
-                </div>
-            </form>
-
-        </div>
-    </div>
-
-    <!-- JAVASCRIPT -->
     <script>
-        const defaultData = [
-            { id: 1, title: "ระบบคิวและจองคิวบริการซ่อมคอมพิวเตอร์", level: "ปวส. 1", category: "Web & Database", description: "ระบบคิวบริการซ่อมคอมพิวเตอร์", tags: ["PHP", "MariaDB", "Nginx"], status: "Completed", imageUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=600", githubUrl: "https://github.com" },
-            { id: 2, title: "ตู้อบเมล่อนอัจฉริยะด้วย ESP32 & IoT", level: "ปวช. 3", category: "IoT & Embedded Systems", description: "โครงงานตู้อบเมล่อนและเซนเซอร์", tags: ["ESP32", "MariaDB", "Python"], status: "Completed", imageUrl: "https://images.unsplash.com/photo-1555680202-c86f0e12f086?w=600", githubUrl: "https://github.com" }
-        ];
-
-        let projects = JSON.parse(localStorage.getItem('nvc_projects')) || defaultData;
-
+        const API_URL = 'api.php';
+        
         document.addEventListener('DOMContentLoaded', () => {
-            checkSession();
-            renderTable();
+            document.getElementById('admin-name').innerText = `Admin: ${session.fullname || session.username}`;
             lucide.createIcons();
+            fetchProjects();
+            fetchSettings();
         });
 
-        function checkSession() {
-            const sess = localStorage.getItem('nvc_user_session');
-            if (sess) {
-                try {
-                    const parsed = JSON.parse(sess);
-                    if (parsed.username) document.getElementById('session-user').innerText = parsed.username;
-                } catch(e) {}
-            }
-        }
-
-        function handleLogout() {
+        function logout() {
             localStorage.removeItem('nvc_user_session');
             window.location.href = 'login.html';
         }
 
-        function renderTable() {
-            const body = document.getElementById('admin-table-body');
-            body.innerHTML = projects.map(p => `
-                <tr class="hover:bg-slate-900/50 transition-colors">
-                    <td class="p-4 font-mono text-emerald-400">#${p.id}</td>
-                    <td class="p-4 font-semibold text-slate-200">${p.title}</td>
-                    <td class="p-4"><span class="px-2 py-0.5 bg-slate-900 text-emerald-400 text-xs font-mono rounded border border-slate-800">${p.level}</span></td>
-                    <td class="p-4"><span class="px-2 py-0.5 bg-slate-900 text-cyan-400 text-xs font-mono rounded border border-slate-800">${p.category}</span></td>
-                    <td class="p-4"><span class="px-2 py-0.5 ${p.status === 'Completed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'} text-xs font-mono rounded">${p.status}</span></td>
-                    <td class="p-4 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <button onclick="editProject(${p.id})" class="p-1.5 bg-slate-800 hover:bg-emerald-500 hover:text-slate-950 text-slate-300 rounded-lg transition-colors" title="แก้ไข">
-                                <i data-lucide="edit-2" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="deleteProject(${p.id})" class="p-1.5 bg-slate-800 hover:bg-red-500 hover:text-white text-slate-300 rounded-lg transition-colors" title="ลบ">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-            lucide.createIcons();
-        }
+        function switchTab(tab) {
+            const btnAppr = document.getElementById('tab-approvals');
+            const btnConf = document.getElementById('tab-config');
+            const contentAppr = document.getElementById('content-approvals');
+            const contentConf = document.getElementById('content-config');
 
-        function openFormModal(isEdit = false) {
-            if (!isEdit) {
-                document.getElementById('project-form').reset();
-                document.getElementById('edit-id').value = '';
-                document.getElementById('modal-form-title').innerText = 'เพิ่มข้อมูลโปรเจกต์ใหม่';
-            }
-            document.getElementById('form-modal').classList.remove('hidden');
-            document.getElementById('form-modal').classList.add('flex');
-        }
-
-        function closeFormModal() {
-            document.getElementById('form-modal').classList.add('hidden');
-            document.getElementById('form-modal').classList.remove('flex');
-        }
-
-        function saveProject(e) {
-            e.preventDefault();
-            const idVal = document.getElementById('edit-id').value;
-            const title = document.getElementById('form-title').value;
-            const level = document.getElementById('form-level').value;
-            const category = document.getElementById('form-category').value;
-            const tagsStr = document.getElementById('form-tags').value;
-            const description = document.getElementById('form-desc').value;
-            const imageUrl = document.getElementById('form-image').value || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600';
-            const githubUrl = document.getElementById('form-github').value || 'https://github.com';
-            const status = document.getElementById('form-status').value;
-
-            const tags = tagsStr ? tagsStr.split(',').map(t => t.trim()) : ['General'];
-
-            if (idVal) {
-                // Edit
-                const idx = projects.findIndex(p => p.id == idVal);
-                if (idx !== -1) {
-                    projects[idx] = { id: Number(idVal), title, level, category, description, tags, status, imageUrl, githubUrl };
-                }
+            if(tab === 'approvals') {
+                btnAppr.className = 'w-full text-left px-4 py-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold text-sm flex items-center gap-2 transition-all';
+                btnConf.className = 'w-full text-left px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-semibold text-sm flex items-center gap-2 transition-all';
+                contentAppr.classList.remove('hidden');
+                contentConf.classList.add('hidden');
             } else {
-                // Create
-                const newId = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
-                projects.push({ id: newId, title, level, category, description, tags, status, imageUrl, githubUrl });
+                btnConf.className = 'w-full text-left px-4 py-3 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold text-sm flex items-center gap-2 transition-all';
+                btnAppr.className = 'w-full text-left px-4 py-3 rounded-xl text-slate-400 hover:bg-slate-900 hover:text-white font-semibold text-sm flex items-center gap-2 transition-all';
+                contentConf.classList.remove('hidden');
+                contentAppr.classList.add('hidden');
             }
-
-            localStorage.setItem('nvc_projects', JSON.stringify(projects));
-            renderTable();
-            closeFormModal();
         }
 
-        function editProject(id) {
-            const p = projects.find(item => item.id === id);
-            if (!p) return;
-
-            document.getElementById('edit-id').value = p.id;
-            document.getElementById('form-title').value = p.title;
-            document.getElementById('form-level').value = p.level;
-            document.getElementById('form-category').value = p.category;
-            document.getElementById('form-tags').value = p.tags.join(', ');
-            document.getElementById('form-desc').value = p.description;
-            document.getElementById('form-image').value = p.imageUrl;
-            document.getElementById('form-github').value = p.githubUrl;
-            document.getElementById('form-status').value = p.status;
-
-            document.getElementById('modal-form-title').innerText = `แก้ไขโปรเจกต์ #${p.id}`;
-            openFormModal(true);
+        // --- Approvals Logic ---
+        async function fetchProjects() {
+            try {
+                const res = await fetch(`${API_URL}?action=get_projects&status=all`);
+                const data = await res.json();
+                const tbody = document.getElementById('projects-table-body');
+                
+                if(data.status === 'success' && data.data.length > 0) {
+                    tbody.innerHTML = data.data.map(p => `
+                        <tr class="hover:bg-slate-900/50 transition-colors group">
+                            <td class="py-4 pr-4">
+                                <div class="font-semibold text-white line-clamp-1">${p.title}</div>
+                                <div class="text-[11px] text-slate-500 font-mono mt-0.5">${p.category}</div>
+                            </td>
+                            <td class="py-4 px-4 text-slate-400">${p.author_name || 'Admin/System'}</td>
+                            <td class="py-4 px-4 text-slate-400 text-xs">${p.level}</td>
+                            <td class="py-4 px-4 text-center">
+                                ${getStatusBadge(p.status)}
+                            </td>
+                            <td class="py-4 pl-4 text-right space-x-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                                ${p.status === 'pending' ? `
+                                    <button onclick="changeStatus(${p.id}, 'approved')" class="p-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 rounded-lg transition-colors border border-emerald-500/20" title="Approve">
+                                        <i data-lucide="check" class="w-4 h-4"></i>
+                                    </button>
+                                    <button onclick="changeStatus(${p.id}, 'rejected')" class="p-1.5 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-slate-950 rounded-lg transition-colors border border-red-500/20" title="Reject">
+                                        <i data-lucide="x" class="w-4 h-4"></i>
+                                    </button>
+                                ` : `
+                                    <button onclick="deleteProject(${p.id})" class="p-1.5 bg-slate-800 hover:bg-red-500 text-slate-400 hover:text-white rounded-lg transition-colors" title="Delete">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                `}
+                            </td>
+                        </tr>
+                    `).join('');
+                    lucide.createIcons();
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" class="py-8 text-center text-slate-500">ไม่พบข้อมูลโปรเจกต์</td></tr>`;
+                }
+            } catch (err) {
+                console.error(err);
+            }
         }
 
-        function deleteProject(id) {
-            if (confirm(`คุณต้องการลบโปรเจกต์ #${id} ใช่หรือไม่?`)) {
-                projects = projects.filter(p => p.id !== id);
-                localStorage.setItem('nvc_projects', JSON.stringify(projects));
-                renderTable();
+        function getStatusBadge(status) {
+            if(status === 'approved') return '<span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded text-[10px] uppercase font-bold tracking-wider">Approved</span>';
+            if(status === 'rejected') return '<span class="px-2 py-1 bg-red-500/10 text-red-400 border border-red-500/20 rounded text-[10px] uppercase font-bold tracking-wider">Rejected</span>';
+            return '<span class="px-2 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded text-[10px] uppercase font-bold tracking-wider">Pending</span>';
+        }
+
+        async function changeStatus(id, status) {
+            if(!confirm(`ยืนยันการ ${status} โปรเจกต์นี้?`)) return;
+            try {
+                const res = await fetch(`${API_URL}?action=change_project_status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, status })
+                });
+                const data = await res.json();
+                if(data.status === 'success') fetchProjects();
+                else alert(data.message);
+            } catch (err) {
+                alert('Error connecting to server');
             }
+        }
+
+        async function deleteProject(id) {
+            if(!confirm(`ยืนยันการลบโปรเจกต์นี้อย่างถาวร?`)) return;
+            try {
+                const res = await fetch(`${API_URL}?action=delete_project`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if(data.status === 'success') fetchProjects();
+                else alert(data.message);
+            } catch (err) {
+                alert('Error connecting to server');
+            }
+        }
+
+        // --- UI Configurator Logic ---
+        async function fetchSettings() {
+            try {
+                const res = await fetch(`${API_URL}?action=get_settings`);
+                const data = await res.json();
+                if(data.status === 'success' && data.data) {
+                    const s = data.data;
+                    document.getElementById('cfg-site-title').value = s.site_title || '';
+                    document.getElementById('cfg-hero-title').value = s.hero_title || '';
+                    document.getElementById('cfg-hero-desc').value = s.hero_desc || '';
+                    
+                    const theme = s.theme || 'emerald';
+                    const radio = document.querySelector(`input[name="theme"][value="${theme}"]`);
+                    if(radio) radio.checked = true;
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save-cfg');
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> กำลังบันทึก...`;
+            
+            const payload = {
+                site_title: document.getElementById('cfg-site-title').value.trim(),
+                hero_title: document.getElementById('cfg-hero-title').value.trim(),
+                hero_desc: document.getElementById('cfg-hero-desc').value.trim(),
+                theme: document.querySelector('input[name="theme"]:checked').value
+            };
+
+            try {
+                const res = await fetch(`${API_URL}?action=update_settings`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    btn.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i> บันทึกสำเร็จ`;
+                    btn.classList.replace('bg-cyan-500', 'bg-emerald-500');
+                    setTimeout(() => {
+                        btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> บันทึกการตั้งค่า`;
+                        btn.classList.replace('bg-emerald-500', 'bg-cyan-500');
+                        lucide.createIcons();
+                    }, 2000);
+                } else {
+                    alert(data.message);
+                    btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> บันทึกการตั้งค่า`;
+                }
+            } catch (err) {
+                alert('Error connecting to server');
+                btn.innerHTML = `<i data-lucide="save" class="w-4 h-4"></i> บันทึกการตั้งค่า`;
+            }
+            lucide.createIcons();
         }
     </script>
 </body>
