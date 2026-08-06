@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin UI Customizer | Department Project Showcase</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
+
+  <!-- Admin Navbar -->
+  <nav class="sticky top-0 z-40 glass-nav">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center font-bold">
+            <i class="fa-solid fa-sliders text-lg"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-bold text-white flex items-center gap-2">
+              ADMIN CUSTOMIZER <span class="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded font-mono">Dynamic Layout</span>
+            </h1>
+            <p class="text-xs text-slate-400 font-light">จัดลำดับและกำหนดค่า Section หน้าเว็บหลัก (Drag & Drop)</p>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+            <i class="fa-solid fa-house"></i> กลับสู่หน้าหลัก Showcase
+          </a>
+          <button onclick="handleAdminLogout()" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3 py-1.5 rounded-lg text-xs font-semibold transition">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> ออกจากระบบ
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Admin Content Body -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left 2 Columns: Drag & Drop List -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-grip-vertical text-amber-400"></i> ลากวางเพื่อจัดลำดับ Section (Drag & Drop)
+              </h2>
+              <p class="text-xs text-slate-400">คลิกค้างที่แถบ แล้วลากขึ้น/ลงเพื่อปรับเปลี่ยนลำดับที่จะแสดงในหน้าเว็บหลัก</p>
+            </div>
+            
+            <button onclick="saveLayoutConfiguration()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i> บันทึกลำดับ Layout
+            </button>
+          </div>
+
+          <!-- Drag and Drop Items Container -->
+          <div id="drag-container" class="space-y-3 pt-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right 1 Column: JSON Live Preview & System Details -->
+      <div class="space-y-6">
+        
+        <!-- Live JSON Structure Preview -->
+        <div class="glass-card p-6 rounded-2xl border border-slate-800 space-y-3">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-code text-cyan-400"></i> Live Structure JSON
+          </h3>
+          <p class="text-[11px] text-slate-400">โครงสร้าง JSON ที่บันทึกลงตาราง <code class="text-indigo-300 font-mono">site_layouts</code></p>
+          
+          <pre id="json-preview" class="bg-slate-950 p-4 rounded-xl text-[11px] font-mono text-cyan-300 overflow-x-auto border border-slate-800 max-h-96 leading-tight"></pre>
+        </div>
+
+        <!-- Quick Help -->
+        <div class="glass-card p-5 rounded-2xl border border-slate-800 space-y-2 text-xs text-slate-300">
+          <h4 class="font-bold text-white flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-question text-amber-400"></i> คำแนะนำการใช้งาน:
+          </h4>
+          <ul class="list-disc list-inside space-y-1 text-slate-400 font-light leading-relaxed">
+            <li>สามารถสวิตช์เปิด/ปิด (Enable/Disable) แต่ละ Section ได้</li>
+            <li>แก้ไขข้อความ Title/Subtitle ของ Hero Section จากการกดปุ่มตั้งค่าได้</li>
+            <li>กดปุ่ม <span class="text-emerald-400 font-semibold">"บันทึกลำดับ Layout"</span> เพื่ออัปเดตลงฐานข้อมูล MariaDB ทันที</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script src="js/admin.js"></script>
+</body>
+</html>
