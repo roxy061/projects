@@ -1,4 +1,4 @@
-// public/app.js - Frontend JavaScript Logic for Department Project Hub
+// public/app.js - Frontend SPA Logic with Dynamic Layout Engine
 
 let currentUser = null;
 let allProjects = [];
@@ -6,20 +6,19 @@ let activeCategory = 'All';
 
 document.addEventListener('DOMContentLoaded', () => {
     checkSession();
+    fetchLayoutAndApply();
     fetchProjects();
 
-    // Event Listeners for Search & Filters
     document.getElementById('search-input')?.addEventListener('input', filterProjects);
     
-    // Category tabs
     document.querySelectorAll('.category-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.category-btn').forEach(b => {
                 b.classList.remove('active', 'bg-indigo-600', 'text-white', 'shadow-lg');
-                b.classList.add('bg-slate-800/80', 'text-slate-300');
+                b.classList.add('bg-slate-800/70', 'text-slate-300');
             });
             btn.classList.add('active', 'bg-indigo-600', 'text-white', 'shadow-lg');
-            btn.classList.remove('bg-slate-800/80', 'text-slate-300');
+            btn.classList.remove('bg-slate-800/70', 'text-slate-300');
             activeCategory = btn.dataset.category || 'All';
             filterProjects();
         });
@@ -32,17 +31,13 @@ function showToast(message, type = 'info') {
     if (!container) return;
 
     const toast = document.createElement('div');
-    
-    let borderClass = 'border-indigo-500';
-    let icon = 'fa-info-circle text-indigo-400';
-    if (type === 'success') { borderClass = 'border-emerald-500'; icon = 'fa-check-circle text-emerald-400'; }
-    if (type === 'error') { borderClass = 'border-rose-500'; icon = 'fa-exclamation-circle text-rose-400'; }
+    let borderClass = type === 'success' ? 'border-emerald-500' : (type === 'error' ? 'border-rose-500' : 'border-indigo-500');
+    let icon = type === 'success' ? 'fa-check-circle text-emerald-400' : (type === 'error' ? 'fa-exclamation-circle text-rose-400' : 'fa-info-circle text-indigo-400');
 
     toast.className = `flex items-center gap-3 px-4 py-3 bg-slate-900/95 border-l-4 ${borderClass} border-slate-700/80 rounded-xl text-slate-100 text-sm shadow-2xl transition duration-300 min-w-[280px]`;
     toast.innerHTML = `<i class="fas ${icon} text-lg"></i> <span class="flex-1">${escapeHtml(message)}</span>`;
     
     container.appendChild(toast);
-
     setTimeout(() => {
         toast.style.opacity = '0';
         setTimeout(() => toast.remove(), 300);
@@ -61,7 +56,39 @@ function getToken() {
 }
 
 // -------------------------------------------------------------
-// 1. Session & Auth Management
+// 1. Dynamic Layout Customizer Fetch & Engine
+// -------------------------------------------------------------
+async function fetchLayoutAndApply() {
+    try {
+        const res = await fetch('/api/settings/layout');
+        const data = await res.json();
+        if (data.success && data.layout) {
+            applyDynamicLayout(data.layout);
+        }
+    } catch (err) {
+        console.error('Layout fetch error:', err);
+    }
+}
+
+function applyDynamicLayout(layoutArray) {
+    const container = document.getElementById('dynamic-main-container');
+    if (!container) return;
+
+    layoutArray.forEach(item => {
+        const sectionElem = document.getElementById(`section-${item.id}`);
+        if (sectionElem) {
+            if (item.enabled) {
+                sectionElem.style.display = '';
+                container.appendChild(sectionElem); // Reorders DOM element
+            } else {
+                sectionElem.style.display = 'none';
+            }
+        }
+    });
+}
+
+// -------------------------------------------------------------
+// 2. Auth & Session Management
 // -------------------------------------------------------------
 async function checkSession() {
     const token = getToken();
@@ -84,7 +111,6 @@ async function checkSession() {
             currentUser = null;
         }
     } catch (err) {
-        console.error('Session check failed:', err);
         currentUser = null;
     }
     renderAuthNav();
@@ -95,7 +121,13 @@ function renderAuthNav() {
     if (!nav) return;
 
     if (currentUser) {
+        const isAdmin = currentUser.role === 'admin';
         nav.innerHTML = `
+            ${isAdmin ? `
+                <a href="/admin.html" class="px-3 py-1.5 bg-purple-500/20 text-purple-300 border border-purple-500/30 font-semibold rounded-xl text-xs flex items-center gap-1.5 hover:bg-purple-500/30 transition">
+                    <i class="fas fa-[#a855f7] fa-sliders"></i> Admin Layout Panel
+                </a>
+            ` : ''}
             <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-800/80 border border-slate-700/60 rounded-full text-xs text-slate-200">
                 <i class="fas fa-user-circle text-indigo-400 text-sm"></i>
                 <span class="font-semibold">${escapeHtml(currentUser.full_name)}</span>
@@ -103,7 +135,7 @@ function renderAuthNav() {
             <button onclick="openProjectModal()" class="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl text-xs sm:text-sm shadow-md transition flex items-center gap-1.5">
                 <i class="fas fa-plus"></i> <span>เพิ่มโปรเจกต์</span>
             </button>
-            <button onclick="handleLogout()" class="px-3 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm transition flex items-center gap-1.5" title="ออกจากระบบ">
+            <button onclick="handleLogout()" class="px-3 py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs sm:text-sm transition" title="ออกจากระบบ">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
         `;
@@ -123,10 +155,7 @@ function renderAuthNav() {
 async function handleLogin(e) {
     e.preventDefault();
     const form = e.target;
-    const data = {
-        username: form.username.value,
-        password: form.password.value
-    };
+    const data = { username: form.username.value, password: form.password.value };
 
     try {
         const res = await fetch('/api/login', {
@@ -175,7 +204,7 @@ async function handleRegister(e) {
             currentUser = result.user;
             renderAuthNav();
             closeModal('auth-modal');
-            showToast('สมัครสมาชิกและเข้าสู่ระบบเรียบร้อยแล้ว!', 'success');
+            showToast('สมัครสมาชิกสำเร็จแล้ว!', 'success');
             fetchProjects();
         } else {
             showToast(result.error || 'ไม่สามารถสมัครสมาชิกได้', 'error');
@@ -194,7 +223,7 @@ function handleLogout() {
 }
 
 // -------------------------------------------------------------
-// 2. Fetch & Render Projects
+// 3. Fetch & Render Projects
 // -------------------------------------------------------------
 async function fetchProjects() {
     try {
@@ -202,6 +231,10 @@ async function fetchProjects() {
         const data = await res.json();
         if (data.success) {
             allProjects = data.projects;
+            
+            const totalStat = document.getElementById('stat-total-projects');
+            if (totalStat) totalStat.textContent = allProjects.length;
+
             filterProjects();
         }
     } catch (err) {
@@ -242,7 +275,7 @@ function renderProjects(projects) {
     }
 
     grid.innerHTML = projects.map(p => {
-        const isOwner = currentUser && parseInt(currentUser.id) === parseInt(p.user_id);
+        const isOwner = currentUser && (parseInt(currentUser.id) === parseInt(p.user_id) || currentUser.role === 'admin');
         const tags = p.tech_stack.split(',').map(t => `<span class="px-2 py-0.5 bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 text-[11px] rounded font-medium">${escapeHtml(t.trim())}</span>`).join('');
         const authorInitial = p.author_name ? p.author_name.charAt(0).toUpperCase() : 'U';
 
@@ -300,7 +333,7 @@ function renderProjects(projects) {
 }
 
 // -------------------------------------------------------------
-// 3. Project CRUD Handlers
+// 4. Project CRUD Handlers
 // -------------------------------------------------------------
 function openProjectModal(projectId = null) {
     if (!currentUser) {
@@ -316,7 +349,7 @@ function openProjectModal(projectId = null) {
     if (projectId) {
         const project = allProjects.find(p => parseInt(p.id) === parseInt(projectId));
         if (project) {
-            titleElem.textContent = 'แก้ไขโปรเจกต์ของคุณ';
+            titleElem.textContent = 'แก้ไขโปรเจกต์';
             document.getElementById('form-project-id').value = project.id;
             document.getElementById('form-title').value = project.title;
             document.getElementById('form-description').value = project.description;
@@ -360,11 +393,7 @@ async function handleProjectSubmit(e) {
             closeModal('project-modal');
             fetchProjects();
         } else {
-            if (res.status === 403) {
-                showToast(`[Authorization Guard] ${result.error}`, 'error');
-            } else {
-                showToast(result.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
-            }
+            showToast(result.error || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
         }
     } catch (err) {
         showToast('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์', 'error');
@@ -454,7 +483,7 @@ function openDetailModal(projectId) {
 }
 
 // -------------------------------------------------------------
-// 4. Modal Helpers
+// 5. Modal Helpers
 // -------------------------------------------------------------
 function openModal(id) {
     document.getElementById(id)?.classList.remove('hidden');

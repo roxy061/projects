@@ -22,13 +22,6 @@
                 700: '#4338ca',
                 cyan: '#06b6d4',
                 purple: '#a855f7'
-              },
-              saas: {
-                bg: '#080c14',
-                panel: 'rgba(15, 23, 42, 0.75)',
-                card: 'rgba(30, 41, 59, 0.5)',
-                border: 'rgba(255, 255, 255, 0.08)',
-                hoverBorder: 'rgba(99, 102, 241, 0.4)'
               }
             },
             fontFamily: {
@@ -57,17 +50,11 @@
       .glass-navbar {
         background: rgba(8, 12, 20, 0.82);
         backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
       .glass-panel {
         background: rgba(15, 23, 42, 0.65);
         backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .glass-card {
-        background: rgba(30, 41, 59, 0.45);
-        backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.08);
       }
       .glass-modal {
@@ -79,7 +66,7 @@
 </head>
 <body class="text-slate-100 min-h-screen flex flex-col selection:bg-indigo-500 selection:text-white">
 
-    <!-- Navbar: Modern SaaS Glassmorphism (Vercel / Linear Style) -->
+    <!-- Navbar: Glassmorphism (Vercel / Linear Style) -->
     <header class="sticky top-0 z-40 glass-navbar px-4 md:px-8 py-3.5 flex justify-between items-center transition-all duration-300">
         <a href="/" class="flex items-center gap-3 text-xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 via-purple-300 to-cyan-400 bg-clip-text text-transparent group">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20 group-hover:scale-105 transition">
@@ -94,58 +81,83 @@
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+    <!-- Main Content Area: Dynamic Sections Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full space-y-8" id="dynamic-main-container">
         
-        <!-- Hero Section -->
-        <section class="text-center py-8 md:py-12 mb-6">
-            <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-4">
-                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>ศูนย์รวมนวัตกรรม & โปรเจกต์ประจำแผนก</span>
-            </div>
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 mb-4 tracking-tight">
-                แชร์ผลงาน พัฒนาทักษะ สร้างโอกาส
-            </h1>
-            <p class="text-slate-400 text-sm md:text-base max-w-2xl mx-auto font-normal leading-relaxed">
-                คลังจัดเก็บข้อมูลระบบ แอปพลิเคชัน และผลงานวิจัยของบุคลากรและนักศึกษาเพื่อการแลกเปลี่ยนเรียนรู้ในแผนก
-            </p>
-        </section>
+        <!-- SECTION 1: HERO (Rendered dynamically by app.js) -->
+        <div id="section-hero" class="layout-section">
+            <section class="text-center py-8 md:py-10">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold mb-4">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>ศูนย์รวมนวัตกรรม & โปรเจกต์ประจำแผนก</span>
+                </div>
+                <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 mb-4 tracking-tight">
+                    แชร์ผลงาน พัฒนาทักษะ สร้างโอกาส
+                </h1>
+                <p class="text-slate-400 text-sm md:text-base max-w-2xl mx-auto font-normal leading-relaxed">
+                    คลังจัดเก็บข้อมูลระบบ แอปพลิเคชัน และผลงานวิจัยของบุคลากรและนักศึกษาเพื่อการแลกเปลี่ยนเรียนรู้ในแผนก
+                </p>
+            </section>
+        </div>
 
-        <!-- Search & Filter Controls Panel -->
-        <section class="glass-panel p-4 md:p-5 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-2xl">
-            <!-- Search Input -->
-            <div class="relative w-full md:w-96">
-                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="search-input" placeholder="ค้นหาโปรเจกต์, Tech Stack หรือผู้พัฒนา..."
-                    class="w-full pl-10 pr-4 py-2.5 bg-slate-950/70 border border-slate-700/60 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 text-xs sm:text-sm transition">
-            </div>
+        <!-- SECTION 2: STATS METRICS (Rendered dynamically by app.js) -->
+        <div id="section-stats" class="layout-section">
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="glass-panel p-4 rounded-xl text-center border border-slate-800">
+                    <div class="text-2xl md:text-3xl font-extrabold text-indigo-400" id="stat-total-projects">0</div>
+                    <div class="text-xs text-slate-400 mt-1">โปรเจกต์ทั้งหมด</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border border-slate-800">
+                    <div class="text-2xl md:text-3xl font-extrabold text-purple-400" id="stat-total-categories">4</div>
+                    <div class="text-xs text-slate-400 mt-1">หมวดหมู่งานวิจัย</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border border-slate-800">
+                    <div class="text-2xl md:text-3xl font-extrabold text-emerald-400">100%</div>
+                    <div class="text-xs text-slate-400 mt-1">Open Source Sharing</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border border-slate-800">
+                    <div class="text-2xl md:text-3xl font-extrabold text-cyan-400">24/7</div>
+                    <div class="text-xs text-slate-400 mt-1">เข้าถึงข้อมูลตลอดเวลา</div>
+                </div>
+            </section>
+        </div>
 
-            <!-- Category Filter Tabs -->
-            <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0" id="category-tabs">
-                <button data-category="All" class="category-btn active px-4 py-2 text-xs font-semibold rounded-full bg-indigo-600 text-white shadow-lg transition whitespace-nowrap">ทั้งหมด</button>
-                <button data-category="Web Application" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">Web Application</button>
-                <button data-category="Mobile Application" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">Mobile Application</button>
-                <button data-category="AI & Machine Learning" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">AI & Machine Learning</button>
-                <button data-category="IoT & Embedded" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">IoT & Embedded</button>
-            </div>
-        </section>
+        <!-- SECTION 3: SEARCH & FILTER (Rendered dynamically by app.js) -->
+        <div id="section-filter" class="layout-section">
+            <section class="glass-panel p-4 md:p-5 rounded-2xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-2xl">
+                <div class="relative w-full md:w-96">
+                    <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" id="search-input" placeholder="ค้นหาโปรเจกต์, Tech Stack หรือผู้พัฒนา..."
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-950/70 border border-slate-700/60 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 text-xs sm:text-sm transition">
+                </div>
 
-        <!-- Projects Grid -->
-        <section id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Dynamic Project Cards Loaded by app.js -->
-        </section>
+                <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0" id="category-tabs">
+                    <button data-category="All" class="category-btn active px-4 py-2 text-xs font-semibold rounded-full bg-indigo-600 text-white shadow-lg transition whitespace-nowrap">ทั้งหมด</button>
+                    <button data-category="Web Application" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">Web Application</button>
+                    <button data-category="Mobile Application" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">Mobile Application</button>
+                    <button data-category="AI & Machine Learning" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">AI & Machine Learning</button>
+                    <button data-category="IoT & Embedded" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/70 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">IoT & Embedded</button>
+                </div>
+            </section>
+        </div>
+
+        <!-- SECTION 4: PROJECTS SHOWCASE GRID (Rendered dynamically by app.js) -->
+        <div id="section-projects" class="layout-section">
+            <section id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Dynamic Cards -->
+            </section>
+        </div>
 
     </main>
 
     <!-- Footer -->
     <footer class="border-t border-slate-800/60 py-6 text-center text-xs text-slate-400">
-        <p>&copy; 2026 Department Project Storage Hub. Production-Ready Architecture with Node.js, MariaDB & Tailwind CSS.</p>
+        <p>&copy; 2026 Department Project Storage Hub. Dynamic Layout Customizer Engine Enabled.</p>
     </footer>
 
-    <!-- Toast Alerts Container -->
     <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
 
-    <!-- MODAL 1: Authentication Modal -->
+    <!-- MODAL 1: Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
         <div class="glass-modal w-full max-w-md p-6 md:p-8 rounded-2xl shadow-2xl relative">
             <button onclick="closeModal('auth-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">
@@ -158,7 +170,7 @@
                 <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
                     <div>
                         <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อผู้ใช้งาน (Username) หรือ อีเมล</label>
-                        <input type="text" name="username" required placeholder="เช่น somchai_dev"
+                        <input type="text" name="username" required placeholder="เช่น somchai_dev หรือ admin"
                             class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
                     </div>
                     <div>
