@@ -4,9 +4,20 @@
 
 const API_BASE = '/api';
 
-// Application State
+// Safe LocalStorage Retrieval Wrapper
 let jwtToken = localStorage.getItem('token') || null;
-let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let currentUser = null;
+try {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) currentUser = JSON.parse(storedUser);
+} catch (e) {
+  console.warn('Invalid user JSON in localStorage, resetting state.');
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  jwtToken = null;
+}
+
+// Application State
 let layoutStructure = [];
 let currentProjects = [];
 let availableTags = [];
@@ -14,6 +25,9 @@ let currentSearch = '';
 let currentTag = '';
 let currentPage = 1;
 let totalPages = 1;
+
+// Fallback image URL
+const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop';
 
 // Document Ready Initializer
 document.addEventListener('DOMContentLoaded', () => {
@@ -43,31 +57,34 @@ function updateUserUI() {
   const btnLogout = document.getElementById('btn-logout');
 
   if (jwtToken && currentUser) {
-    displayName.textContent = currentUser.full_name || currentUser.username;
-    rolePill.textContent = currentUser.role || 'Member';
-    
-    if (currentUser.role === 'admin') {
-      rolePill.className = 'bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase';
-      btnAdminPanel.classList.remove('hidden');
-    } else {
-      rolePill.className = 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[10px] font-semibold uppercase';
-      btnAdminPanel.classList.add('hidden');
+    if (displayName) displayName.textContent = currentUser.full_name || currentUser.username;
+    if (rolePill) {
+      rolePill.textContent = currentUser.role || 'Member';
+      if (currentUser.role === 'admin') {
+        rolePill.className = 'bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-[10px] font-bold uppercase';
+        if (btnAdminPanel) btnAdminPanel.classList.remove('hidden');
+      } else {
+        rolePill.className = 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded text-[10px] font-semibold uppercase';
+        if (btnAdminPanel) btnAdminPanel.classList.add('hidden');
+      }
     }
 
-    userBadge.classList.remove('hidden');
-    btnCreateProject.classList.remove('hidden');
-    btnLoginModal.classList.add('hidden');
-    btnLogout.classList.remove('hidden');
+    if (userBadge) userBadge.classList.remove('hidden');
+    if (btnCreateProject) btnCreateProject.classList.remove('hidden');
+    if (btnLoginModal) btnLoginModal.classList.add('hidden');
+    if (btnLogout) btnLogout.classList.remove('hidden');
   } else {
-    displayName.textContent = 'Guest User';
-    rolePill.textContent = 'Guest';
-    rolePill.className = 'bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold uppercase';
+    if (displayName) displayName.textContent = 'Guest User';
+    if (rolePill) {
+      rolePill.textContent = 'Guest';
+      rolePill.className = 'bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold uppercase';
+    }
 
-    userBadge.classList.remove('hidden');
-    btnAdminPanel.classList.add('hidden');
-    btnCreateProject.classList.add('hidden');
-    btnLoginModal.classList.remove('hidden');
-    btnLogout.classList.add('hidden');
+    if (userBadge) userBadge.classList.remove('hidden');
+    if (btnAdminPanel) btnAdminPanel.classList.add('hidden');
+    if (btnCreateProject) btnCreateProject.classList.add('hidden');
+    if (btnLoginModal) btnLoginModal.classList.remove('hidden');
+    if (btnLogout) btnLogout.classList.add('hidden');
   }
 }
 
@@ -86,7 +103,17 @@ async function loadSiteLayout() {
     }
   } catch (error) {
     console.error('Failed to load layout:', error);
-    showToast('Failed to load site layout configuration.', 'error');
+    if (container) {
+      // Fallback layout if backend connection drops
+      layoutStructure = [
+        { id: 'hero', name: 'Hero Section', enabled: true, title: 'Department Project Showcase', subtitle: 'คลังรวบรวมและนำเสนอผลงานโปรเจกต์นวัตกรรมประจำภาควิชา' },
+        { id: 'stats', name: 'System Statistics', enabled: true },
+        { id: 'filter', name: 'Search & Tag Filters', enabled: true },
+        { id: 'projects', name: 'Projects Showcase Grid', enabled: true },
+        { id: 'about', name: 'Department Info', enabled: true }
+      ];
+      renderLayoutSections(container);
+    }
   }
 }
 
@@ -94,6 +121,7 @@ async function loadSiteLayout() {
  * Render Dynamic UI Layout Sections based on Layout JSON Order
  */
 function renderLayoutSections(container) {
+  if (!container) return;
   container.innerHTML = ''; // Clear loader
 
   layoutStructure.forEach(section => {
@@ -145,11 +173,11 @@ function createHeroHTML(config) {
       </span>
 
       <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
-        ${config.title || 'Department Project Showcase'}
+        ${escapeHtml(config.title || 'Department Project Showcase')}
       </h1>
 
       <p class="max-w-2xl mx-auto text-slate-300 text-sm sm:text-base mb-8 font-light leading-relaxed">
-        ${config.subtitle || 'ศูนย์รวบรวมผลงานนวัตกรรม ซอฟต์แวร์ และงานวิจัยเชิงสร้างสรรค์ประจำภาควิชา'}
+        ${escapeHtml(config.subtitle || 'ศูนย์รวบรวมผลงานนวัตกรรม ซอฟต์แวร์ และงานวิจัยเชิงสร้างสรรค์ประจำภาควิชา')}
       </p>
 
       <div class="flex flex-wrap items-center justify-center gap-4">
@@ -173,7 +201,7 @@ function createStatsHTML() {
         <div class="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-400 flex items-center justify-center text-lg mb-2">
           <i class="fa-solid fa-folder-closed"></i>
         </div>
-        <div id="stat-total-projects" class="text-2xl font-bold text-white">3</div>
+        <div id="stat-total-projects" class="text-2xl font-bold text-white">0</div>
         <p class="text-xs text-slate-400 font-light">โปรเจกต์ทั้งหมด</p>
       </div>
 
@@ -181,24 +209,24 @@ function createStatsHTML() {
         <div class="w-10 h-10 rounded-xl bg-cyan-600/20 text-cyan-400 flex items-center justify-center text-lg mb-2">
           <i class="fa-solid fa-tags"></i>
         </div>
-        <div id="stat-total-tags" class="text-2xl font-bold text-white">8</div>
+        <div id="stat-total-tags" class="text-2xl font-bold text-white">${availableTags.length || 0}</div>
         <p class="text-xs text-slate-400 font-light">แท็กหมวดหมู่</p>
       </div>
 
       <div class="glass-card p-5 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center">
         <div class="w-10 h-10 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-lg mb-2">
-          <i class="fa-solid fa-users"></i>
+          <i class="fa-solid fa-shield-check"></i>
         </div>
-        <div class="text-2xl font-bold text-white">100%</div>
-        <p class="text-xs text-slate-400 font-light">Verified Quality</p>
+        <div class="text-2xl font-bold text-white">Verified</div>
+        <p class="text-xs text-slate-400 font-light">Quality Standard</p>
       </div>
 
       <div class="glass-card p-5 rounded-2xl border border-slate-800 text-center flex flex-col items-center justify-center">
         <div class="w-10 h-10 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center text-lg mb-2">
-          <i class="fa-solid fa-shield-halved"></i>
+          <i class="fa-solid fa-user-lock"></i>
         </div>
         <div class="text-2xl font-bold text-white">RBAC</div>
-        <p class="text-xs text-slate-400 font-light">Access Control</p>
+        <p class="text-xs text-slate-400 font-light">Access Protection</p>
       </div>
     </div>
   `;
@@ -211,7 +239,7 @@ function createFilterHTML() {
         <!-- Search Input -->
         <div class="relative w-full md:w-96">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
-          <input type="text" id="search-input" value="${currentSearch}" placeholder="ค้นหาตามชื่อโปรเจกต์ หรือ คำบรรยาย..." 
+          <input type="text" id="search-input" value="${escapeHtml(currentSearch)}" placeholder="ค้นหาตามชื่อโปรเจกต์ หรือ คำบรรยาย..." 
             class="w-full pl-10 pr-4 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500 transition">
         </div>
 
@@ -279,7 +307,7 @@ function createFeaturedHTML() {
           </div>
         </div>
         <div class="w-full md:w-1/2 h-48 sm:h-56 rounded-xl overflow-hidden border border-slate-700 shadow-xl">
-          <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=1000&auto=format&fit=crop" class="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Featured">
+          <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?q=80&w=1000&auto=format&fit=crop" onerror="this.src='${DEFAULT_COVER_IMAGE}'" class="w-full h-full object-cover hover:scale-105 transition duration-500" alt="Featured">
         </div>
       </div>
     </div>
@@ -336,7 +364,7 @@ async function loadTags() {
   try {
     const res = await fetch(`${API_BASE}/projects/tags/all`);
     const data = await res.json();
-    if (data.success) {
+    if (data.success && Array.isArray(data.tags)) {
       availableTags = data.tags;
       const statTags = document.getElementById('stat-total-tags');
       if (statTags) statTags.textContent = availableTags.length;
@@ -375,7 +403,7 @@ function renderTagPills() {
         ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' 
         : 'bg-slate-900 text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800'
     }`;
-    btn.innerHTML = `${tag.name} <span class="text-[10px] opacity-70 bg-slate-950 px-1.5 py-0.2 rounded-full">${tag.project_count}</span>`;
+    btn.innerHTML = `${escapeHtml(tag.name)} <span class="text-[10px] opacity-70 bg-slate-950 px-1.5 py-0.2 rounded-full">${tag.project_count || 0}</span>`;
     btn.onclick = () => selectTag(tag.name);
     container.appendChild(btn);
   });
@@ -436,7 +464,7 @@ async function loadProjects() {
     const data = await res.json();
 
     if (data.success) {
-      currentProjects = data.data;
+      currentProjects = data.data || [];
       currentPage = data.pagination.currentPage;
       totalPages = data.pagination.totalPages;
 
@@ -453,9 +481,9 @@ async function loadProjects() {
   } catch (error) {
     console.error('Error loading projects:', error);
     grid.innerHTML = `
-      <div class="col-span-full py-12 text-center text-rose-400 text-sm">
+      <div class="col-span-full py-12 text-center text-rose-400 text-sm glass-card rounded-2xl border border-rose-500/20">
         <i class="fa-solid fa-triangle-exclamation text-2xl mb-2 block"></i>
-        ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ backend ได้
+        ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ backend ได้ในขณะนี้
       </div>
     `;
   }
@@ -493,11 +521,14 @@ function renderProjectsGrid(projects) {
     const card = document.createElement('div');
     card.className = 'glass-card rounded-2xl overflow-hidden border border-slate-800 project-card flex flex-col justify-between';
 
+    const coverUrl = project.cover_image_url || DEFAULT_COVER_IMAGE;
+
     card.innerHTML = `
       <div>
         <!-- Cover Image -->
         <div class="relative h-48 w-full overflow-hidden bg-slate-900 cursor-pointer" onclick="openDetailModal(${project.id})">
-          <img src="${project.cover_image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop'}" 
+          <img src="${coverUrl}" 
+               onerror="this.src='${DEFAULT_COVER_IMAGE}'"
                alt="${escapeHtml(project.title)}" 
                class="w-full h-full object-cover hover:scale-105 transition duration-500">
           <div class="absolute top-3 right-3 bg-slate-950/80 backdrop-blur text-slate-300 text-[10px] px-2.5 py-1 rounded-full border border-slate-700/60 font-medium">
@@ -598,13 +629,13 @@ function changePage(page) {
  */
 function openAuthModal(tab = 'login') {
   const modal = document.getElementById('modal-auth');
-  modal.classList.add('active');
+  if (modal) modal.classList.add('active');
   switchAuthTab(tab);
 }
 
 function closeAuthModal() {
   const modal = document.getElementById('modal-auth');
-  modal.classList.remove('active');
+  if (modal) modal.classList.remove('active');
 }
 
 function switchAuthTab(tab) {
@@ -614,15 +645,15 @@ function switchAuthTab(tab) {
   const formRegister = document.getElementById('form-register');
 
   if (tab === 'login') {
-    tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 transition';
-    tabRegister.className = 'flex-1 py-2 text-center text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition';
-    formLogin.classList.remove('hidden');
-    formRegister.classList.add('hidden');
+    if (tabLogin) tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 transition';
+    if (tabRegister) tabRegister.className = 'flex-1 py-2 text-center text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition';
+    if (formLogin) formLogin.classList.remove('hidden');
+    if (formRegister) formRegister.classList.add('hidden');
   } else {
-    tabRegister.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400 transition';
-    tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition';
-    formRegister.classList.remove('hidden');
-    formLogin.classList.add('hidden');
+    if (tabRegister) tabRegister.className = 'flex-1 py-2 text-center text-sm font-semibold border-b-2 border-emerald-500 text-emerald-400 transition';
+    if (tabLogin) tabLogin.className = 'flex-1 py-2 text-center text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition';
+    if (formRegister) formRegister.classList.remove('hidden');
+    if (formLogin) formLogin.classList.add('hidden');
   }
 }
 
@@ -733,7 +764,7 @@ async function openProjectModal(projectId = null) {
   pFileImage.value = '';
 
   if (projectId) {
-    titleEl.textContent = 'แก้ไขโปรเจกต์';
+    if (titleEl) titleEl.textContent = 'แก้ไขโปรเจกต์';
     try {
       const res = await fetch(`${API_BASE}/projects/${projectId}`);
       const data = await res.json();
@@ -741,9 +772,9 @@ async function openProjectModal(projectId = null) {
       if (data.success) {
         const p = data.project;
         formId.value = p.id;
-        pTitle.value = p.title;
-        pShortDesc.value = p.short_description;
-        pFullDesc.value = p.full_description;
+        pTitle.value = p.title || '';
+        pShortDesc.value = p.short_description || '';
+        pFullDesc.value = p.full_description || '';
         pUrlImage.value = p.cover_image_url || '';
         pDemoUrl.value = p.demo_url || '';
         pGithubUrl.value = p.github_url || '';
@@ -754,15 +785,15 @@ async function openProjectModal(projectId = null) {
       return;
     }
   } else {
-    titleEl.textContent = 'สร้างโปรเจกต์ใหม่';
+    if (titleEl) titleEl.textContent = 'สร้างโปรเจกต์ใหม่';
   }
 
-  modal.classList.add('active');
+  if (modal) modal.classList.add('active');
 }
 
 function closeProjectModal() {
   const modal = document.getElementById('modal-project-form');
-  modal.classList.remove('active');
+  if (modal) modal.classList.remove('active');
 }
 
 async function handleProjectFormSubmit(e) {
@@ -831,7 +862,12 @@ async function openDetailModal(projectId) {
     if (data.success) {
       const p = data.project;
 
-      document.getElementById('detail-cover').src = p.cover_image_url || 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=1000&auto=format&fit=crop';
+      const coverImg = document.getElementById('detail-cover');
+      if (coverImg) {
+        coverImg.src = p.cover_image_url || DEFAULT_COVER_IMAGE;
+        coverImg.onerror = () => { coverImg.src = DEFAULT_COVER_IMAGE; };
+      }
+
       document.getElementById('detail-title').textContent = p.title;
       document.getElementById('detail-author').textContent = p.author_name || 'Member';
       document.getElementById('detail-date').textContent = `สร้างเมื่อ: ${new Date(p.created_at).toLocaleDateString('th-TH')}`;
@@ -840,25 +876,31 @@ async function openDetailModal(projectId) {
 
       // Tags Badges
       const tagsContainer = document.getElementById('detail-tags');
-      tagsContainer.innerHTML = (p.tags || []).map(t => `
-        <span class="bg-indigo-600/80 text-white text-[11px] px-2.5 py-0.5 rounded-full border border-indigo-400/30 backdrop-blur font-mono">${escapeHtml(t)}</span>
-      `).join('');
+      if (tagsContainer) {
+        tagsContainer.innerHTML = (p.tags || []).map(t => `
+          <span class="bg-indigo-600/80 text-white text-[11px] px-2.5 py-0.5 rounded-full border border-indigo-400/30 backdrop-blur font-mono">${escapeHtml(t)}</span>
+        `).join('');
+      }
 
       // Demo & GitHub Links
       const demoLink = document.getElementById('detail-demo-link');
-      if (p.demo_url) {
-        demoLink.href = p.demo_url;
-        demoLink.classList.remove('hidden');
-      } else {
-        demoLink.classList.add('hidden');
+      if (demoLink) {
+        if (p.demo_url) {
+          demoLink.href = p.demo_url;
+          demoLink.classList.remove('hidden');
+        } else {
+          demoLink.classList.add('hidden');
+        }
       }
 
       const githubLink = document.getElementById('detail-github-link');
-      if (p.github_url) {
-        githubLink.href = p.github_url;
-        githubLink.classList.remove('hidden');
-      } else {
-        githubLink.classList.add('hidden');
+      if (githubLink) {
+        if (p.github_url) {
+          githubLink.href = p.github_url;
+          githubLink.classList.remove('hidden');
+        } else {
+          githubLink.classList.add('hidden');
+        }
       }
 
       // Owner Action Bar
@@ -870,15 +912,15 @@ async function openDetailModal(projectId) {
       const btnEdit = document.getElementById('btn-detail-edit');
       const btnDelete = document.getElementById('btn-detail-delete');
 
-      if (canModify) {
+      if (canModify && ownerActions) {
         ownerActions.classList.remove('hidden');
-        btnEdit.onclick = () => { closeDetailModal(); openProjectModal(p.id); };
-        btnDelete.onclick = () => { closeDetailModal(); confirmDeleteProject(p.id); };
-      } else {
+        if (btnEdit) btnEdit.onclick = () => { closeDetailModal(); openProjectModal(p.id); };
+        if (btnDelete) btnDelete.onclick = () => { closeDetailModal(); confirmDeleteProject(p.id); };
+      } else if (ownerActions) {
         ownerActions.classList.add('hidden');
       }
 
-      modal.classList.add('active');
+      if (modal) modal.classList.add('active');
     }
   } catch (err) {
     showToast('ไม่สามารถโหลดรายละเอียดโปรเจกต์ได้', 'error');
@@ -887,7 +929,7 @@ async function openDetailModal(projectId) {
 
 function closeDetailModal() {
   const modal = document.getElementById('modal-project-detail');
-  modal.classList.remove('active');
+  if (modal) modal.classList.remove('active');
 }
 
 /**
@@ -956,14 +998,14 @@ function showToast(message, type = 'info') {
 }
 
 /**
- * Escape HTML Helper
+ * Escape HTML Helper for XSS Prevention
  */
 function escapeHtml(str) {
-  if (!str) return '';
+  if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&rawgt;')
+    .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }

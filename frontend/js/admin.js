@@ -4,8 +4,16 @@
 
 const API_BASE = '/api';
 
+// Safe LocalStorage Retrieval Wrapper
 let jwtToken = localStorage.getItem('token') || null;
-let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+let currentUser = null;
+try {
+  const storedUser = localStorage.getItem('user');
+  if (storedUser) currentUser = JSON.parse(storedUser);
+} catch (e) {
+  console.warn('Invalid user JSON in localStorage.');
+}
+
 let layoutItems = [];
 let sortableInstance = null;
 
@@ -49,6 +57,8 @@ async function loadAdminLayout() {
  */
 function renderDragList() {
   const container = document.getElementById('drag-container');
+  if (!container) return;
+
   container.innerHTML = '';
 
   layoutItems.forEach((item, index) => {
@@ -98,7 +108,12 @@ function renderDragList() {
  */
 function initSortableJS() {
   const container = document.getElementById('drag-container');
-  if (!container || typeof Sortable === 'undefined') return;
+  if (!container) return;
+
+  if (typeof Sortable === 'undefined') {
+    console.warn('SortableJS library not loaded, using fallback controls.');
+    return;
+  }
 
   if (sortableInstance) {
     sortableInstance.destroy();
@@ -113,11 +128,10 @@ function initSortableJS() {
       const oldIndex = evt.oldIndex;
       const newIndex = evt.newIndex;
 
-      if (oldIndex !== newIndex) {
+      if (oldIndex !== newIndex && oldIndex !== undefined && newIndex !== undefined) {
         const movedItem = layoutItems.splice(oldIndex, 1)[0];
         layoutItems.splice(newIndex, 0, movedItem);
 
-        // Update item numbers in DOM
         renderDragList();
         initSortableJS();
         showToast('สลับลำดับ Section เรียบร้อยแล้ว (อย่าลืมกดบันทึก)', 'info');
@@ -237,7 +251,7 @@ function showToast(message, type = 'info') {
 }
 
 function escapeHtml(str) {
-  if (!str) return '';
+  if (str === null || str === undefined) return '';
   return String(str)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
