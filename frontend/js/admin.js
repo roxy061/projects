@@ -1,5 +1,5 @@
 /**
- * Department Project Showcase - Admin Layout Customizer JavaScript
+ * Department Project Showcase - Admin Layout Customizer JavaScript (SortableJS Edition)
  */
 
 const API_BASE = '/api';
@@ -7,9 +7,7 @@ const API_BASE = '/api';
 let jwtToken = localStorage.getItem('token') || null;
 let currentUser = JSON.parse(localStorage.getItem('user') || 'null');
 let layoutItems = [];
-
-// Drag and drop state
-let draggedIndex = null;
+let sortableInstance = null;
 
 document.addEventListener('DOMContentLoaded', () => {
   verifyAdminAccess();
@@ -37,6 +35,7 @@ async function loadAdminLayout() {
     if (data.success && Array.isArray(data.layout)) {
       layoutItems = data.layout;
       renderDragList();
+      initSortableJS();
       updateJsonPreview();
     }
   } catch (error) {
@@ -55,13 +54,13 @@ function renderDragList() {
   layoutItems.forEach((item, index) => {
     const card = document.createElement('div');
     card.className = `draggable-item glass-card p-4 rounded-xl border ${item.enabled ? 'border-slate-700/80 bg-slate-900/60' : 'border-slate-800/40 bg-slate-950/40 opacity-60'} flex items-center justify-between gap-4`;
-    card.draggable = true;
+    card.dataset.id = item.id;
     card.dataset.index = index;
 
     card.innerHTML = `
-      <div class="flex items-center space-x-3 cursor-grab">
+      <div class="flex items-center space-x-3 cursor-grab handle">
         <i class="fa-solid fa-grip-vertical text-slate-500 text-base"></i>
-        <span class="w-6 h-6 rounded-md bg-indigo-950 text-indigo-300 font-mono text-xs flex items-center justify-center font-bold">
+        <span class="item-number w-6 h-6 rounded-md bg-indigo-950 text-indigo-300 font-mono text-xs flex items-center justify-center font-bold">
           ${index + 1}
         </span>
         <div>
@@ -82,18 +81,11 @@ function renderDragList() {
 
         <!-- Toggle Switch -->
         <label class="relative inline-flex items-center cursor-pointer">
-          <input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="toggleSectionState(${index})" class="sr-only peer">
+          <input type="checkbox" ${item.enabled ? 'checked' : ''} onchange="toggleSectionState('${item.id}')" class="sr-only peer">
           <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-emerald-600"></div>
         </label>
       </div>
     `;
-
-    // Attach Drag & Drop Events
-    card.addEventListener('dragstart', handleDragStart);
-    card.addEventListener('dragover', handleDragOver);
-    card.addEventListener('dragleave', handleDragLeave);
-    card.addEventListener('drop', handleDrop);
-    card.addEventListener('dragend', handleDragEnd);
 
     container.appendChild(card);
   });
@@ -102,53 +94,48 @@ function renderDragList() {
 }
 
 /**
- * Drag & Drop Event Handlers
+ * Initialize SortableJS for smooth drag and drop
  */
-function handleDragStart(e) {
-  draggedIndex = parseInt(this.dataset.index, 10);
-  this.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-}
+function initSortableJS() {
+  const container = document.getElementById('drag-container');
+  if (!container || typeof Sortable === 'undefined') return;
 
-function handleDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  this.classList.add('drag-over');
-}
+  if (sortableInstance) {
+    sortableInstance.destroy();
+  }
 
-function handleDragLeave() {
-  this.classList.remove('drag-over');
-}
+  sortableInstance = new Sortable(container, {
+    animation: 200,
+    handle: '.handle',
+    ghostClass: 'dragging',
+    chosenClass: 'drag-over',
+    onEnd: function (evt) {
+      const oldIndex = evt.oldIndex;
+      const newIndex = evt.newIndex;
 
-function handleDrop(e) {
-  e.preventDefault();
-  this.classList.remove('drag-over');
+      if (oldIndex !== newIndex) {
+        const movedItem = layoutItems.splice(oldIndex, 1)[0];
+        layoutItems.splice(newIndex, 0, movedItem);
 
-  const targetIndex = parseInt(this.dataset.index, 10);
-  if (draggedIndex === null || draggedIndex === targetIndex) return;
-
-  // Re-order layoutItems array
-  const draggedItem = layoutItems.splice(draggedIndex, 1)[0];
-  layoutItems.splice(targetIndex, 0, draggedItem);
-
-  renderDragList();
-  showToast('สลับลำดับ Section เรียบร้อยแล้ว (อย่าลืมกดบันทึก)', 'info');
-}
-
-function handleDragEnd() {
-  this.classList.remove('dragging');
-  document.querySelectorAll('.draggable-item').forEach(item => {
-    item.classList.remove('drag-over');
+        // Update item numbers in DOM
+        renderDragList();
+        initSortableJS();
+        showToast('สลับลำดับ Section เรียบร้อยแล้ว (อย่าลืมกดบันทึก)', 'info');
+      }
+    }
   });
-  draggedIndex = null;
 }
 
 /**
- * Toggle Section Enable/Disable
+ * Toggle Section Enable/Disable by ID
  */
-function toggleSectionState(index) {
-  layoutItems[index].enabled = !layoutItems[index].enabled;
-  renderDragList();
+function toggleSectionState(sectionId) {
+  const item = layoutItems.find(i => i.id === sectionId);
+  if (item) {
+    item.enabled = !item.enabled;
+    renderDragList();
+    initSortableJS();
+  }
 }
 
 /**
@@ -168,6 +155,7 @@ function editHeroSettings(index) {
   layoutItems[index].subtitle = newSubtitle;
 
   renderDragList();
+  initSortableJS();
   showToast('ปรับแต่งข้อความ Hero เรียบร้อย', 'success');
 }
 

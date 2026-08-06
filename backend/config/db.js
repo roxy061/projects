@@ -36,8 +36,12 @@ async function initDatabase() {
     await tempConn.query(`CREATE DATABASE IF NOT EXISTS \`${poolConfig.database}\` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`);
     await tempConn.end();
 
-    // 2. Read schema.sql and execute table definitions & initial seed data
-    const schemaPath = path.join(__dirname, '../schema.sql');
+    // 2. Locate schema.sql (check root or backend directory)
+    let schemaPath = path.join(__dirname, '../../schema.sql');
+    if (!fs.existsSync(schemaPath)) {
+      schemaPath = path.join(__dirname, '../schema.sql');
+    }
+
     if (fs.existsSync(schemaPath)) {
       const schemaSql = fs.readFileSync(schemaPath, 'utf8');
       const conn = await pool.getConnection();
