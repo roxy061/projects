@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Department Project Hub - ระบบจัดเก็บและแชร์โปรเจกต์ประจำแผนก</title>
+    <meta name="description" content="ศูนย์กลางจัดเก็บ แสดงผลงาน และแชร์โปรเจกต์ซอฟต์แวร์สำหรับคนในแผนก">
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: '#f5f3ff',
+                500: '#6366f1',
+                600: '#4f46e5',
+                700: '#4338ca',
+                accent: '#a855f7'
+              },
+              darkbg: '#090d16',
+              cardbg: 'rgba(30, 41, 59, 0.7)'
+            },
+            fontFamily: {
+              sans: ['Outfit', 'Inter', 'sans-serif'],
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+      body {
+        font-family: 'Outfit', 'Inter', sans-serif;
+        background-color: #090d16;
+        background-image: 
+          radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+          radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.12) 0%, transparent 45%);
+        background-attachment: fixed;
+      }
+      .glass-panel {
+        background: rgba(30, 41, 59, 0.65);
+        backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .glass-modal {
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Sticky Navigation Bar -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80 px-4 md:px-8 py-3.5 flex justify-between items-center">
+        <a href="/" class="flex items-center gap-2.5 text-xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
+            <i class="fas fa-cubes text-indigo-400 text-2xl"></i>
+            <span>Dept Project Hub</span>
+        </a>
+
+        <!-- Dynamic User Auth Nav -->
+        <div id="auth-nav" class="flex items-center gap-3">
+            <!-- Rendered by app.js -->
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
+        
+        <!-- Hero Section -->
+        <section class="text-center py-8 md:py-12 mb-6">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 mb-4 tracking-tight">
+                ศูนย์รวมผลงาน & โปรเจกต์ประจำแผนก
+            </h1>
+            <p class="text-slate-400 text-base md:text-lg max-w-2xl mx-auto font-normal">
+                คลังจัดเก็บข้อมูลระบบ แอปพลิเคชัน และผลงานนวัตกรรมของบุคลากรและนักศึกษาเพื่อการแลกเปลี่ยนเรียนรู้
+            </p>
+        </section>
+
+        <!-- Search & Category Filters -->
+        <section class="glass-panel p-4 md:p-6 rounded-2xl mb-8 flex flex-col md:flex-row gap-4 items-center justify-between shadow-xl">
+            <!-- Search Box -->
+            <div class="relative w-full md:w-96">
+                <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" id="search-input" placeholder="ค้นหาโปรเจกต์, Tech Stack หรือชื่อผู้พัฒนา..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-950/60 border border-slate-700/60 rounded-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:border-indigo-500 text-sm transition">
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="flex gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0" id="category-tabs">
+                <button data-category="All" class="category-btn active px-4 py-2 text-xs font-semibold rounded-full bg-indigo-600 text-white shadow-lg transition whitespace-nowrap">ทั้งหมด</button>
+                <button data-category="Web Application" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">Web Application</button>
+                <button data-category="Mobile Application" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">Mobile Application</button>
+                <button data-category="AI & Machine Learning" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">AI & Machine Learning</button>
+                <button data-category="IoT & Embedded" class="category-btn px-4 py-2 text-xs font-semibold rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition whitespace-nowrap">IoT & Embedded</button>
+            </div>
+        </section>
+
+        <!-- Projects Grid -->
+        <section id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Dynamic Project Cards -->
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800/60 py-6 text-center text-xs text-slate-400">
+        <p>&copy; 2026 Department Project Storage Hub. Built with Node.js, Express, MariaDB & Tailwind CSS.</p>
+    </footer>
+
+    <!-- Toast Alert Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
+
+    <!-- ============================================================
+         MODAL 1: Auth Modal (Login / Register)
+         ============================================================ -->
+    <div id="auth-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+        <div class="glass-modal w-full max-w-md p-6 md:p-8 rounded-2xl shadow-2xl relative">
+            <button onclick="closeModal('auth-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <!-- Login Form -->
+            <div id="login-section">
+                <h3 class="text-2xl font-bold text-white mb-6">เข้าสู่ระบบสมาชิก</h3>
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อผู้ใช้งาน (Username) หรือ อีเมล</label>
+                        <input type="text" name="username" required placeholder="เช่น somchai_dev"
+                            class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">รหัสผ่าน (Password)</label>
+                        <input type="password" name="password" required placeholder="••••••••"
+                            class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl text-sm shadow-lg transition">
+                        <i class="fas fa-sign-in-alt mr-2"></i> เข้าสู่ระบบ
+                    </button>
+                </form>
+                <p class="mt-4 text-xs text-center text-slate-400">
+                    ยังไม่มีบัญชีสมาชิก? <button onclick="toggleAuthTab('register')" class="text-indigo-400 font-semibold hover:underline">สมัครสมาชิกที่นี่</button>
+                </p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-section" class="hidden">
+                <h3 class="text-2xl font-bold text-white mb-6">สมัครสมาชิกใหม่</h3>
+                <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อ-นามสกุล *</label>
+                        <input type="text" name="full_name" required placeholder="นายสมชาย สายโค้ด"
+                            class="w-full px-3.5 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อผู้ใช้งาน (Username) *</label>
+                        <input type="text" name="username" required placeholder="somchai_dev"
+                            class="w-full px-3.5 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">อีเมล *</label>
+                        <input type="email" name="email" required placeholder="somchai@nvc.ac.th"
+                            class="w-full px-3.5 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">แผนก / สาขาวิชา</label>
+                        <select name="department" class="w-full px-3.5 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                            <option value="แผนกเทคโนโลยีสารสนเทศ">แผนกเทคโนโลยีสารสนเทศ</option>
+                            <option value="แผนกคอมพิวเตอร์ธุรกิจ">แผนกคอมพิวเตอร์ธุรกิจ</option>
+                            <option value="แผนกอิเล็กทรอนิกส์">แผนกอิเล็กทรอนิกส์</option>
+                            <option value="แผนกไฟฟ้ากำลัง">แผนกไฟฟ้ากำลัง</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">รหัสผ่าน (อย่างน้อย 6 ตัวอักษร) *</label>
+                        <input type="password" name="password" required minlength="6" placeholder="••••••••"
+                            class="w-full px-3.5 py-2 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl text-sm shadow-lg transition">
+                        <i class="fas fa-user-plus mr-2"></i> ยืนยันการสมัครสมาชิก
+                    </button>
+                </form>
+                <p class="mt-4 text-xs text-center text-slate-400">
+                    มีบัญชีสมาชิกอยู่แล้ว? <button onclick="toggleAuthTab('login')" class="text-indigo-400 font-semibold hover:underline">เข้าสู่ระบบ</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL 2: Add / Edit Project Form Modal
+         ============================================================ -->
+    <div id="project-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+        <div class="glass-modal w-full max-w-xl p-6 md:p-8 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('project-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <h3 id="project-modal-title" class="text-2xl font-bold text-white mb-6">อัปโหลด / แชร์โปรเจกต์ใหม่</h3>
+
+            <form id="project-form" onsubmit="handleProjectSubmit(event)" enctype="multipart/form-data" class="space-y-4">
+                <input type="hidden" name="project_id" id="form-project-id">
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">ชื่อโปรเจกต์ / ระบบงาน *</label>
+                    <input type="text" name="title" id="form-title" required placeholder="เช่น ระบบบริหารจัดการคลังอุปกรณ์"
+                        class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">หมวดหมู่โปรเจกต์ *</label>
+                    <select name="category" id="form-category" required class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                        <option value="Web Application">Web Application</option>
+                        <option value="Mobile Application">Mobile Application</option>
+                        <option value="AI & Machine Learning">AI & Machine Learning</option>
+                        <option value="IoT & Embedded">IoT & Embedded</option>
+                        <option value="Other">อื่นๆ</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">รายละเอียดโปรเจกต์ *</label>
+                    <textarea name="description" id="form-description" required rows="3" placeholder="อธิบายวัตถุประสงค์ ฟีเจอร์เด่น และการใช้งานของโปรเจกต์..."
+                        class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500"></textarea>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Tech Stack (คั่นด้วยเครื่องหมาย ,) *</label>
+                    <input type="text" name="tech_stack" id="form-tech-stack" required placeholder="เช่น Node.js, Express, MariaDB, Tailwind CSS"
+                        class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">GitHub URL (ถ้ามี)</label>
+                        <input type="url" name="github_url" id="form-github-url" placeholder="https://github.com/user/repo"
+                            class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Live Demo URL (ถ้ามี)</label>
+                        <input type="url" name="demo_url" id="form-demo-url" placeholder="https://myproject.nvc.ac.th"
+                            class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- File Upload (Multer) or Image URL -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">อัปโหลดรูปภาพหน้าปก (Cover Image - Multer)</label>
+                    <input type="file" name="cover_image" accept="image/*"
+                        class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500 border border-slate-700/80 rounded-xl p-1 bg-slate-950/80">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 mb-1">หรือระบุ URL รูปภาพ (ถ้าไม่ได้อัปโหลดไฟล์)</label>
+                    <input type="url" name="image_url" id="form-image-url" placeholder="https://images.unsplash.com/photo-1517694712202..."
+                        class="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-xl text-white text-sm focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-800">
+                    <button type="button" onclick="closeModal('project-modal')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-sm transition">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl text-sm shadow-lg transition">
+                        <i class="fas fa-save mr-2"></i> บันทึกข้อมูล
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         MODAL 3: View Project Detail Modal
+         ============================================================ -->
+    <div id="detail-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md hidden p-4">
+        <div class="glass-modal w-full max-w-2xl p-6 md:p-8 rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('detail-modal')" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="detail-modal-body">
+                <!-- Rendered dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Frontend SPA Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

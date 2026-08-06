@@ -11,7 +11,6 @@ CREATE DATABASE IF NOT EXISTS `dept_projects`
 USE `dept_projects`;
 
 -- 2. Create DB User & Grant Privileges
--- (Change 'SecretPass123!' to your desired strong password)
 CREATE USER IF NOT EXISTS 'proj_user'@'localhost' IDENTIFIED BY 'SecretPass123!';
 GRANT ALL PRIVILEGES ON `dept_projects`.* TO 'proj_user'@'localhost';
 FLUSH PRIVILEGES;
@@ -28,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 4. Projects Table
+-- 4. Projects Table (with Foreign Key & CASCADE Delete)
 CREATE TABLE IF NOT EXISTS `projects` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
   `user_id` INT NOT NULL,
@@ -46,15 +45,15 @@ CREATE TABLE IF NOT EXISTS `projects` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. Insert Sample Seed Data (Password for default users is: password123)
--- Hash generated via password_hash('password123', PASSWORD_BCRYPT)
+-- 5. Seed Sample Data (Password is 'password123')
+-- Bcrypt hash generated for 'password123'
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `full_name`, `department`) VALUES
-(1, 'somchai_dev', 'somchai@nvc.ac.th', '$2y$10$e8Wf88zPex7TxgR/P7S4/.p9fT7/R3KlnsT7hC06Lw/WkQfK3f1.2', 'สมชาย สายโค้ด', 'แผนกเทคโนโลยีสารสนเทศ'),
-(2, 'somsri_design', 'somsri@nvc.ac.th', '$2y$10$e8Wf88zPex7TxgR/P7S4/.p9fT7/R3KlnsT7hC06Lw/WkQfK3f1.2', 'สมศรี มีดีไซน์', 'แผนกคอมพิวเตอร์ธุรกิจ')
+(1, 'somchai_dev', 'somchai@nvc.ac.th', '$2a$10$K87x.k8RjB.N8T2o1E7.u.jM5Xh2qR5K3Zg8X3w8Z3w8Z3w8Z3w8Z', 'สมชาย สายโค้ด', 'แผนกเทคโนโลยีสารสนเทศ'),
+(2, 'somsri_design', 'somsri@nvc.ac.th', '$2a$10$K87x.k8RjB.N8T2o1E7.u.jM5Xh2qR5K3Zg8X3w8Z3w8Z3w8Z3w8Z', 'สมศรี มีดีไซน์', 'แผนกคอมพิวเตอร์ธุรกิจ')
 ON DUPLICATE KEY UPDATE `id`=`id`;
 
 INSERT INTO `projects` (`id`, `user_id`, `title`, `description`, `category`, `tech_stack`, `github_url`, `demo_url`, `image_url`) VALUES
-(1, 1, 'ระบบเช็คชื่อนักศึกษาสแกน QR Code', 'ระบบบันทึกเวลาเรียนของนักศึกษาในแผนกผ่านการสแกน QR Code ช่วยลดเวลาเช็คชื่อ และออกรายงานสรุปการขาด ลา มาสาย อัตโนมัติสำหรับอาจารย์ประจำวิชา', 'Web Application', 'PHP, MariaDB, HTML5, JavaScript, Bootstrap', 'https://github.com/example/qrcode-attendance', 'https://qrcode.nvc.ac.th', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=60'),
+(1, 1, 'ระบบเช็คชื่อนักศึกษาสแกน QR Code', 'ระบบบันทึกเวลาเรียนของนักศึกษาในแผนกผ่านการสแกน QR Code ช่วยลดเวลาเช็คชื่อ และออกรายงานสรุปการขาด ลา มาสาย อัตโนมัติสำหรับอาจารย์ประจำวิชา', 'Web Application', 'Node.js, Express, MariaDB, Tailwind CSS', 'https://github.com/example/qrcode-attendance', 'https://qrcode.nvc.ac.th', 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=60'),
 (2, 2, 'แอปพลิเคชันแนะนำสถานที่ท่องเที่ยวในจังหวัด', 'แอปพลิเคชันแสดงพิกัดสถานที่ท่องเที่ยว ร้านอาหาร และที่พักแนะนำ พร้อมระบบแสดงแผนที่แบบโต้ตอบและการให้คะแนนรีวิวจากผู้ใช้งาน', 'Mobile Application', 'Flutter, Dart, Firebase', 'https://github.com/example/local-travel-app', 'https://travel.nvc.ac.th', 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&auto=format&fit=crop&q=60'),
 (3, 1, 'ระบบตรวจจับใบหน้าลงเวลาเข้า-ออกงาน (AI Face Recognition)', 'โปรเจกต์วิจัยประยุกต์ใช้ Computer Vision ในการตรวจจับใบหน้าเพื่อยืนยันตัวตน เชื่อมต่อกับกล้อง IP Camera ประจำแผนก', 'AI & Machine Learning', 'Python, OpenCV, FastAPI, React', 'https://github.com/example/face-recognition-system', NULL, 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=60')
 ON DUPLICATE KEY UPDATE `id`=`id`;

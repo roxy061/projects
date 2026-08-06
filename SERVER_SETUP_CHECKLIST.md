@@ -1,28 +1,54 @@
-# 📌 คู่มือการตั้งค่า Server ตามข้อกำหนด (Ubuntu Linux Server Setup Checklist)
+# 📌 คู่มือการตั้งค่า Ubuntu Server สำหรับ Node.js (Express) + MariaDB + PM2 + Nginx
 
-เอกสารนี้รวบรวมคำสั่ง Linux, Configuration Files, คำสั่ง SQL และ Shell Scripts ที่พร้อมสำหรับนำไปรันบน Ubuntu Linux Server เพื่อติดตั้งและเปิดให้บริการระบบจัดเก็บโปรเจกต์ประจำแผนก
+เอกสารนี้รวบรวมคำสั่ง Linux Command แบบจับมือทำที่สมบูรณ์ สำหรับการ Deploy แอปพลิเคชันระบบจัดเก็บโปรเจกต์ประจำแผนก บน **Ubuntu Server 22.04 / 24.04 LTS**
 
 ---
 
-## 🌐 1. โครงสร้างเว็บและโดเมน (Web & VirtualHost - Nginx)
+## 🌐 1. โครงสร้างเว็บ โดเมน และ PM2 (Web, VirtualHost & Service)
 
-### 1.1 สร้างไดเรกทอรีสำหรับระบบเว็บไซต์
+### 1.1 สร้างไดเรกทอรีแอปพลิเคชันและเตรียมสิทธิ์
 ```bash
-# สร้างไดเรกทอรีเก็บไฟล์เว็บไซต์ และโฟลเดอร์สำหรับ uploads
-sudo mkdir -p /var/www/username/uploads
-sudo chown -R www-data:www-data /var/www/username
-sudo chmod -R 755 /var/www/username
-sudo chmod -R 775 /var/www/username/uploads
+# 1. สร้างโฟลเดอร์โปรเจกต์ที่ /var/www/username-app/
+sudo mkdir -p /var/www/username-app/uploads
+sudo chown -R $USER:$USER /var/www/username-app
+sudo chmod -R 775 /var/www/username-app/uploads
+
+# 2. คัดลอกซอร์สโค้ดทั้งหมดเข้ามาที่โฟลเดอร์นี้
+cd /var/www/username-app
+
+# 3. ติดตั้ง Node.js (v20 LTS) และ PM2 Process Manager (หากยังไม่ได้ติดตั้ง)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+sudo npm install -g pm2
+
+# 4. ติดตั้ง NPM Dependencies ตาม package.json
+npm install
 ```
 
-### 1.2 สร้างไฟล์ Nginx VirtualHost
-สร้างไฟล์คอนฟิกที่ `/etc/nginx/conf.d/username.conf`:
+### 1.2 สั่งงาน PM2 (Process Manager) เพื่อรัน Node.js เป็น Background Service
+```bash
+# สั่ง PM2 ให้เริ่มต้นรัน server.js
+pm2 start server.js --name "username-app"
+
+# ตั้งค่าให้ PM2 สตาร์ตแอปพลิเคชันให้อัตโนมัติทุกครั้งเมื่อ Server Reboot
+pm2 startup
+# (คัดลอกคำสั่งที่ PM2 แสดงขึ้นมาวางใน Terminal เพื่อยืนยันสิทธิ์ sudo)
+
+# บันทึกสถานะกระบวนการปัจจุบันของ PM2
+pm2 save
+
+# ตรวจสอบสถานะการทำงาน
+pm2 status
+```
+
+### 1.3 สร้าง Nginx VirtualHost Reverse Proxy (`/etc/nginx/conf.d/username.conf`)
+สร้างไฟล์คอนฟิก Nginx:
 
 ```bash
 sudo nano /etc/nginx/conf.d/username.conf
 ```
 
-ใส่เนื้อหา Configuration ด้านล่างนี้ (เปลี่ยน `username.nvc.ac.th` และเวอร์ชัน `php-fpm` ให้ตรงตามเครื่อง Server):
+ใส่เนื้อหา Configuration สำหรับทำ Reverse Proxy ไปยัง `http://127.0.0.1:3000`:
 
 ```nginx
 # /etc/nginx/conf.d/username.conf
@@ -32,108 +58,64 @@ server {
     listen [::]:80;
     server_name username.nvc.ac.th;
 
-    root /var/www/username;
-    index index.php index.html index.htm;
-
-    # Client upload limit (รองรับไฟล์อัปโหลดสูงสุด 50MB)
+    # ปรับขนาดการอัปโหลดไฟล์สูงสุด (50MB)
     client_max_body_size 50M;
 
-    # Logging
+    # Nginx Logging
     access_log /var/log/nginx/username_access.log;
     error_log /var/log/nginx/username_error.log;
 
+    # Reverse Proxy ไปยัง Node.js Express App (พอร์ต 3000)
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
     }
 
-    # ประมวลผลไฟล์ PHP ผ่าน PHP-FPM
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock; # ตรวจสอบเวอร์ชัน PHP (เช่น php8.1-fpm หรือ php8.2-fpm)
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    # ป้องกันการเข้าถึงไฟล์ซ่อน (.htaccess, .git ฯลฯ)
-    location ~ /\.ht {
-        deny all;
-    }
-
-    # Cache สถิตสำหรับไฟล์ Assets
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        expires max;
-        log_not_found off;
+    # Static file routing ปลายทางโฟลเดอร์ uploads
+    location /uploads/ {
+        alias /var/www/username-app/uploads/;
+        expires 30d;
+        add_header Cache-Control "public, no-transform";
     }
 }
 ```
 
-### 1.3 ทดสอบคอนฟิกและ Restart Nginx
+ทดสอบและสั่งรีโหลด Nginx:
+
 ```bash
-# ตรวจสอบความถูกต้องของ Nginx Configuration Syntax
+# ตรวจสอบไวยากรณ์ไฟล์คอนฟิก Nginx
 sudo nginx -t
 
-# รีโหลด Nginx เพื่อให้คอนฟิกมีผล
+# รีโหลด Nginx เพื่อเริ่มใช้งาน
 sudo systemctl reload nginx
 ```
 
 ---
 
-## 💾 2. ระบบเว็บไซต์และฐานข้อมูล (MariaDB Setup)
+## 💾 2. ระบบเว็บไซต์และฐานข้อมูล (MariaDB Import)
 
-### 2.1 คำสั่ง SQL ในการสร้าง Database, User และการกำหนด Privileges
-เรียกใช้งาน MariaDB Shell บน Ubuntu Server:
+### 2.1 รันไฟล์ `schema.sql` เข้า MariaDB
+รันสคริปต์ SQL เพื่อสร้าง Database, DB User, Tables และ Seed Data:
+
+```bash
+# รันไฟล์ schema.sql ด้วยบัญชี root ของ MariaDB
+sudo mariadb -u root -p < /var/www/username-app/schema.sql
+```
+
+หรือสามารถนำเข้าผ่าน MariaDB Shell โดยตรง:
 
 ```bash
 sudo mariadb -u root -p
 ```
-
-รันคำสั่ง SQL ด้านล่างเพื่อสร้าง Database, สิทธิ์ผู้ใช้งาน และ Schema:
-
 ```sql
--- 1. สร้าง Database สำหรับโปรเจกต์
-CREATE DATABASE IF NOT EXISTS `dept_projects` 
-  CHARACTER SET utf8mb4 
-  COLLATE utf8mb4_unicode_ci;
-
--- 2. สร้าง User ใหม่ และกำหนด Password ปลอดภัย
-CREATE USER IF NOT EXISTS 'proj_user'@'localhost' IDENTIFIED BY 'SecretPass123!';
-
--- 3. กำหนด Privileges เฉพาะสำหรับฐานข้อมูล dept_projects (Principle of Least Privilege)
-GRANT ALL PRIVILEGES ON `dept_projects`.* TO 'proj_user'@'localhost';
-FLUSH PRIVILEGES;
-
--- 4. เข้าใช้งาน Database และสร้างตาราง
-USE `dept_projects`;
-
--- ตาราง users
-CREATE TABLE IF NOT EXISTS `users` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `username` VARCHAR(50) NOT NULL UNIQUE,
-  `email` VARCHAR(100) NOT NULL UNIQUE,
-  `password` VARCHAR(255) NOT NULL,
-  `full_name` VARCHAR(100) NOT NULL,
-  `department` VARCHAR(100) NOT NULL DEFAULT 'แผนกเทคโนโลยีสารสนเทศ',
-  `avatar_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ตาราง projects พร้อม Relationship (Foreign Key)
-CREATE TABLE IF NOT EXISTS `projects` (
-  `id` INT AUTO_INCREMENT PRIMARY KEY,
-  `user_id` INT NOT NULL,
-  `title` VARCHAR(200) NOT NULL,
-  `description` TEXT NOT NULL,
-  `category` VARCHAR(50) NOT NULL DEFAULT 'Web Application',
-  `tech_stack` VARCHAR(255) NOT NULL,
-  `github_url` VARCHAR(255) DEFAULT NULL,
-  `demo_url` VARCHAR(255) DEFAULT NULL,
-  `image_url` VARCHAR(255) DEFAULT NULL,
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  CONSTRAINT `fk_projects_users` 
-    FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) 
-    ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+SOURCE /var/www/username-app/schema.sql;
 ```
 
 ---
@@ -141,37 +123,35 @@ CREATE TABLE IF NOT EXISTS `projects` (
 ## 🔒 3. ความปลอดภัยและไฟร์วอลล์ (Security & HTTPS)
 
 ### 3.1 ตั้งค่า UFW Firewall
-เปิดใช้งานเฉพาะพอร์ตที่จำเป็น: 22 (SSH), 80 (HTTP), และ 443 (HTTPS)
+เปิดอนุญาตเฉพาะพอร์ต 22 (SSH), 80 (HTTP), และ 443 (HTTPS):
 
 ```bash
 # อนุญาต พอร์ต 22 (SSH)
-sudo ufw allow 22/tcp comment 'SSH Access'
+sudo ufw allow 22/tcp comment 'SSH'
 
 # อนุญาต พอร์ต 80 (HTTP)
-sudo ufw allow 80/tcp comment 'HTTP Access'
+sudo ufw allow 80/tcp comment 'HTTP'
 
 # อนุญาต พอร์ต 443 (HTTPS)
-sudo ufw allow 443/tcp comment 'HTTPS Access'
+sudo ufw allow 443/tcp comment 'HTTPS'
 
 # เปิดใช้งาน UFW Firewall
 sudo ufw enable
 
-# ตรวจสอบสถานะการทำงานของไฟร์วอลล์
+# ตรวจสอบสถานะไฟร์วอลล์
 sudo ufw status verbose
 ```
 
-### 3.2 ติดตั้ง Certbot และขอรับ SSL Certificate (Let's Encrypt)
-ขอรับใบรับรองความปลอดภัย HTTPS สำหรับโดเมน `username.nvc.ac.th`:
-
+### 3.2 ติดตั้ง SSL/HTTPS ด้วย Certbot (Let's Encrypt)
 ```bash
 # ติดตั้ง Certbot และ Nginx Plugin
 sudo apt update
 sudo apt install -y certbot python3-certbot-nginx
 
-# ขอรับ SSL Certificate และปรับแต่ง Nginx อัตโนมัติ
+# ขอรับ SSL Certificate สำหรับพอร์ต 443
 sudo certbot --nginx -d username.nvc.ac.th
 
-# ทดสอบระบบ Auto-Renewal ของ Certbot
+# ทดสอบระบบ Auto-Renew
 sudo certbot renew --dry-run
 ```
 
@@ -179,26 +159,22 @@ sudo certbot renew --dry-run
 
 ## ⏰ 4. ระบบสำรองข้อมูลและการดู Log (Backup & Observability)
 
-### 4.1 สร้าง Shell Script สำรองข้อมูล MariaDB (`.sql.gz`)
-สร้างโฟลเดอร์สำหรับเก็บไฟล์สำรองข้อมูล และไฟล์ Script:
+### 4.1 Shell Script สำรองข้อมูล MariaDB (`.sql.gz`)
+สร้างโฟลเดอร์และไฟล์ Shell Script:
 
 ```bash
-# สร้างโฟลเดอร์สำหรับเก็บไฟล์ backup
 sudo mkdir -p /var/backups/username/
-
-# สร้างไฟล์สคริปต์สำรองข้อมูล
 sudo nano /usr/local/bin/backup-mariadb.sh
 ```
 
-ใส่เนื้อหา Shell Script ด้านล่างนี้:
+วางเนื้อหา Shell Script ด้านล่างนี้:
 
 ```bash
 #!/bin/bash
 # ============================================================
-# MariaDB Auto-Backup Script for Department Project Storage
+# MariaDB Auto-Backup Script for Node.js App
 # ============================================================
 
-# กำหนดค่าตัวแปร
 DB_USER="proj_user"
 DB_PASS="SecretPass123!"
 DB_NAME="dept_projects"
@@ -206,62 +182,47 @@ BACKUP_DIR="/var/backups/username"
 DATE=$(date +%Y-%m-%d_%H%M%S)
 BACKUP_FILE="${BACKUP_DIR}/db_backup_${DB_NAME}_${DATE}.sql.gz"
 
-# สร้างไดเรกทอรีหากยังไม่มี
 mkdir -p ${BACKUP_DIR}
 
-# ทำการ Dump และ บีบอัดเป็น .sql.gz
+# Dump & Compress
 mysqldump -u ${DB_USER} -p"${DB_PASS}" ${DB_NAME} | gzip -9 > ${BACKUP_FILE}
 
-# ลบไฟล์ Backup ที่เก่ากว่า 30 วัน เพื่อประหยัดพื้นที่ดิสก์
+# ลบไฟล์ Backup เก่าเกิน 30 วัน
 find ${BACKUP_DIR} -type f -name "*.sql.gz" -mtime +30 -exec rm -f {} \;
 
-# สรุป Log การทำงาน
 echo "[$(date)] Backup completed successfully: ${BACKUP_FILE}" >> /var/log/mariadb-backup.log
 ```
 
-กำหนดสิทธิ์ Executable ให้กับ Shell Script:
+มอบสิทธิ์ Executable:
 
 ```bash
 sudo chmod +x /usr/local/bin/backup-mariadb.sh
 
 # ทดสอบรันสคริปต์ทันที
 sudo /usr/local/bin/backup-mariadb.sh
-
-# ตรวจสอบไฟล์ที่ตั้งสำรองไว้
-ls -lh /var/backups/username/
 ```
 
-### 4.2 ตั้งค่า Crontab เพื่อตั้งเวลาสำรองข้อมูลอัตโนมัติ (ทุกวัน เวลา 02:00 น.)
-เปิดแก้ไข Crontab ของผู้ดูแลระบบ:
-
+### 4.2 ตั้งค่า Crontab (รันสคริปต์ทุกวัน เวลา 02:00 น.)
 ```bash
 sudo crontab -e
 ```
 
-เพิ่มบรรทัดนี้ที่ท้ายไฟล์:
+เพิ่มบรรทัดนี้ลงท้ายไฟล์:
 
 ```cron
 0 2 * * * /usr/local/bin/backup-mariadb.sh >/dev/null 2>&1
 ```
 
----
-
-## 📊 5. การดู Log และตรวจติดตามระบบ (Observability & Debugging)
-
-คำสั่งสำหรับตรวจสอบสถานะและ Logs ของระบบบน Ubuntu Server:
-
+### 4.3 คำสั่งสำหรับดู Logs ของ Nginx และ PM2
 ```bash
-# ดู Nginx Access Log แบบ Real-time
-sudo tail -f /var/log/nginx/username_access.log
+# 1. ดู Logs ของ PM2 (Node.js Application Logs)
+pm2 logs username-app
+pm2 logs --lines 100
 
-# ดู Nginx Error Log
+# 2. ดู Logs ของ Nginx Web Server
+sudo tail -f /var/log/nginx/username_access.log
 sudo tail -f /var/log/nginx/username_error.log
 
-# ดู Database Backup Log
+# 3. ดู Log สรุปการสำรองข้อมูล MariaDB
 sudo tail -f /var/log/mariadb-backup.log
-
-# ตรวจสอบสถานะการทำงานของบริการหลัก
-sudo systemctl status nginx
-sudo systemctl status mariadb
-sudo systemctl status php8.1-fpm
 ```
