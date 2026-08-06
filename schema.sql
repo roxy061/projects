@@ -10,9 +10,9 @@ CREATE DATABASE IF NOT EXISTS `dept_projects`
 
 USE `dept_projects`;
 
--- 2. Create DB User & Grant Privileges
-CREATE USER IF NOT EXISTS 'proj_user'@'localhost' IDENTIFIED BY 'SecretPass123!';
-GRANT ALL PRIVILEGES ON `dept_projects`.* TO 'proj_user'@'localhost';
+-- 2. Create DB User & Grant Privileges (dev_user)
+CREATE USER IF NOT EXISTS 'dev_user'@'localhost' IDENTIFIED BY 'SecretPass123!';
+GRANT ALL PRIVILEGES ON `dept_projects`.* TO 'dev_user'@'localhost';
 FLUSH PRIVILEGES;
 
 -- 3. Users Table
@@ -45,8 +45,7 @@ CREATE TABLE IF NOT EXISTS `projects` (
     ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. Seed Sample Data (Password is 'password123')
--- Bcrypt hash generated for 'password123'
+-- 5. Seed Sample Data (Default password for demo users is 'password123')
 INSERT INTO `users` (`id`, `username`, `email`, `password`, `full_name`, `department`) VALUES
 (1, 'somchai_dev', 'somchai@nvc.ac.th', '$2a$10$K87x.k8RjB.N8T2o1E7.u.jM5Xh2qR5K3Zg8X3w8Z3w8Z3w8Z3w8Z', 'สมชาย สายโค้ด', 'แผนกเทคโนโลยีสารสนเทศ'),
 (2, 'somsri_design', 'somsri@nvc.ac.th', '$2a$10$K87x.k8RjB.N8T2o1E7.u.jM5Xh2qR5K3Zg8X3w8Z3w8Z3w8Z3w8Z', 'สมศรี มีดีไซน์', 'แผนกคอมพิวเตอร์ธุรกิจ')
