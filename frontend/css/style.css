@@ -1,29 +1,28 @@
-/* Department Project Showcase Custom Styles */
+/* ==========================================================================
+   Department Project Showcase - Custom CSS Styles
+   ========================================================================== */
+
+/* นำเข้าฟอนต์ภาษาไทยและอังกฤษจาก Google Fonts (Prompt & Inter) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap');
 
 :root {
-  --primary-color: #4f46e5;
-  --primary-hover: #4338ca;
-  --accent-color: #06b6d4;
+  --primary-color: #6366f1;
+  --primary-hover: #4f46e5;
+  --bg-dark: #090d16;
 }
 
+/* กำหนดฟอนต์และพื้นหลังหลักสำหรับทั้งหน้าเว็บ */
 body {
   font-family: 'Prompt', 'Inter', sans-serif;
-  background-color: #0f172a;
+  background-color: #090d16; /* slate-950 tone */
   color: #f8fafc;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
-/* Glassmorphism Card Style */
-.glass-card {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
+/* Glassmorphism Effect สำหรับ Navbar และ Cards */
 .glass-nav {
   background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(12px);
@@ -31,47 +30,32 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* Gradient Text */
+.glass-card {
+  background: rgba(30, 41, 59, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Gradient Text Effect สำหรับข้อความหัวข้อไฮไลต์ */
 .text-gradient {
   background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Card Hover Animation */
+/* Card Hover Animations & Transitions */
 .project-card {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .project-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(99, 102, 241, 0.3);
   border-color: rgba(99, 102, 241, 0.4);
 }
 
-/* Drag & Drop Admin Styles */
-.draggable-item {
-  cursor: grab;
-  transition: all 0.2s ease;
-}
-
-.draggable-item:active {
-  cursor: grabbing;
-}
-
-.draggable-item.dragging {
-  opacity: 0.4;
-  transform: scale(0.98);
-  border: 2px dashed #6366f1;
-}
-
-.drag-over {
-  border: 2px solid #38bdf8 !important;
-  background-color: rgba(56, 189, 248, 0.1) !important;
-  transform: translateY(2px);
-}
-
-/* Modal Fade Animation */
+/* Custom Modal Animation (Fade In / Scale) */
 .modal-backdrop {
   opacity: 0;
   pointer-events: none;
@@ -92,14 +76,14 @@ body {
   transform: scale(1);
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar สไตล์ Dark Mode */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #090d16;
 }
 
 ::-webkit-scrollbar-thumb {

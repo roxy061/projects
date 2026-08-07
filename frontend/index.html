@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Department Project Showcase | ระบบจัดเก็บและแสดงผลงานโปรเจกต์</title>
-  <meta name="description" content="ระบบจัดเก็บและแสดงผลงานโปรเจกต์ของภาควิชา รวบรวมผลงานนวัตกรรม เทคโนโลยี และงานวิจัยของนักศึกษาและบุคลากร">
+  <title>Department Project Showcase | ระบบจัดเก็บและแสดงผลงานโปรเจกต์ประจำแผนก</title>
+  <meta name="description" content="ระบบจัดเก็บและนำเสนอผลงานโปรเจกต์นวัตกรรม ซอฟต์แวร์ และงานวิจัยประจำภาควิชา">
   
-  <!-- Tailwind CSS via CDN -->
+  <!-- 1. Tailwind CSS via CDN + Custom Config (Dark Mode Enabled: 'class') -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -15,7 +15,7 @@
         extend: {
           colors: {
             brand: {
-              50: '#eeef2',
+              50: '#eef2ff',
               100: '#e0e7ff',
               500: '#6366f1',
               600: '#4f46e5',
@@ -27,78 +27,80 @@
     }
   </script>
 
-  <!-- FontAwesome Icons -->
+  <!-- FontAwesome 6.4.0 Icons CDN -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- Custom Styles -->
+  <!-- Custom CSS Styles -->
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
 
-  <!-- Toast Notification Container -->
+  <!-- Toast Notification Container สำหรับแจ้งเตือนผู้ใช้งาน -->
   <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
 
-  <!-- Glassmorphism Navbar -->
-  <nav class="sticky top-0 z-40 glass-nav">
+  <!-- 2. Sticky Glassmorphism Navbar (bg-slate-900/80 backdrop-blur-md) -->
+  <nav class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         
-        <!-- Logo & Title -->
+        <!-- Brand Logo & Title -->
         <div class="flex items-center space-x-3 cursor-pointer" onclick="resetFiltersAndReload()">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
             <i class="fa-solid fa-code text-white text-xl"></i>
           </div>
           <div>
-            <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              SHOWCASE <span class="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-mono">v1.0</span>
+            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              PROJECT SHOWCASE <span class="text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full font-mono">v1.0</span>
             </h1>
             <p class="text-xs text-slate-400 font-light hidden sm:block">Department Project Repository</p>
           </div>
         </div>
 
-        <!-- Right Side Actions & User Status -->
-        <div class="flex items-center space-x-3 sm:space-x-4">
+        <!-- Right Side Nav Actions (User Profile, Login, Logout, Admin Button) -->
+        <div id="nav-actions" class="flex items-center space-x-3 sm:space-x-4">
           
-          <!-- User Status Badge -->
+          <!-- User Status Badge (แสดงเมื่อล็อกอินหรือเป็น Guest) -->
           <div id="user-badge" class="hidden sm:flex items-center gap-2 bg-slate-800/80 border border-slate-700/60 px-3 py-1.5 rounded-full text-xs">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span id="user-display-name" class="text-slate-300 font-medium">Guest User</span>
             <span id="user-role-pill" class="bg-slate-700 text-slate-300 px-2 py-0.5 rounded text-[10px] font-semibold uppercase">Guest</span>
           </div>
 
-          <!-- Admin Panel Button (Admin Only) -->
+          <!-- Admin Drag & Drop Customizer Link (แสดงเฉพาะ Admin) -->
           <a id="btn-admin-panel" href="admin.html" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-semibold px-3.5 py-1.5 rounded-lg text-xs transition duration-200 flex items-center gap-1.5 shadow-md shadow-amber-500/20">
             <i class="fa-solid fa-sliders"></i>
-            <span class="hidden md:inline">Admin UI Customizer</span>
+            <span class="hidden md:inline">Admin Customizer</span>
           </a>
 
-          <!-- Create Project Button (Authenticated User) -->
-          <button id="btn-create-project" onclick="openProjectModal()" class="hidden bg-indigo-600 hover:bg-indigo-500 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition duration-200 flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+          <!-- ปุ่มสร้างโปรเจกต์ใหม่ (แสดงเฉพาะ Member / Admin) -->
+          <button id="btn-create-project" onclick="openProjectModal()" class="hidden bg-brand-600 hover:bg-brand-500 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition duration-200 flex items-center gap-2 shadow-lg shadow-brand-600/30">
             <i class="fa-solid fa-plus"></i>
             <span class="hidden sm:inline">สร้างโปรเจกต์</span>
           </button>
 
-          <!-- Auth Login / Logout Buttons -->
-          <button id="btn-login-modal" onclick="openAuthModal('login')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-indigo-300 px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200 flex items-center gap-2">
+          <!-- ปุ่มเข้าสู่ระบบ / สมัครสมาชิก -->
+          <button id="btn-login-modal" onclick="openAuthModal('login')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-brand-300 px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200 flex items-center gap-2">
             <i class="fa-solid fa-right-to-bracket"></i>
             <span>เข้าสู่ระบบ</span>
           </button>
 
+          <!-- ปุ่มออกจากระบบ -->
           <button id="btn-logout" onclick="handleLogout()" class="hidden bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3.5 py-1.5 rounded-lg text-sm font-medium transition duration-200 flex items-center gap-1.5">
             <i class="fa-solid fa-right-from-bracket"></i>
             <span class="hidden sm:inline">ออกจากระบบ</span>
           </button>
 
         </div>
+
       </div>
     </div>
   </nav>
 
-  <!-- MAIN DYNAMIC SECTIONS CONTAINER -->
+  <!-- MAIN CONTAINER FOR DYNAMIC SECTIONS -->
   <main id="dynamic-sections" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-    <!-- Dynamic content will be rendered here based on DB layout config -->
+    <!-- โครงสร้าง UI จะถูกโหลดและจัดเรียงแบบ Dynamic จาก GET /api/layout -->
     <div id="layout-loader" class="flex flex-col items-center justify-center py-24 space-y-4">
-      <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <div class="w-12 h-12 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
       <p class="text-slate-400 text-sm animate-pulse">กำลังโหลดโครงสร้างหน้าเว็บและข้อมูลโปรเจกต์...</p>
     </div>
   </main>
@@ -107,33 +109,33 @@
   <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-500 mt-auto">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-graduation-cap text-indigo-400 text-base"></i>
+        <i class="fa-solid fa-graduation-cap text-brand-400 text-base"></i>
         <span class="font-medium text-slate-400">Department Project Showcase System</span>
       </div>
-      <p>© 2026 Department of Computer Science & Engineering. All Rights Reserved.</p>
+      <p>© 2026 Department of Computer Engineering & Science. All Rights Reserved.</p>
       <div class="flex space-x-4">
-        <a href="admin.html" class="hover:text-indigo-400 transition">Admin Portal</a>
-        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-indigo-400 transition">Back to Top <i class="fa-solid fa-arrow-up ml-1"></i></a>
+        <a href="admin.html" class="hover:text-brand-400 transition">Admin Portal</a>
+        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-brand-400 transition">Back to Top <i class="fa-solid fa-arrow-up ml-1"></i></a>
       </div>
     </div>
   </footer>
 
-  <!-- ==================== MODALS ==================== -->
+  <!-- ==================== MODALS COMPONENT ==================== -->
 
-  <!-- 1. AUTH MODAL (LOGIN / REGISTER) -->
+  <!-- 1. AUTH MODAL (LOGIN / REGISTER TABS) -->
   <div id="modal-auth" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
     <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeAuthModal()"></div>
     
     <div class="relative glass-card rounded-2xl w-full max-w-md p-6 sm:p-8 modal-content shadow-2xl border border-slate-700/60 z-10">
       
-      <!-- Close Button -->
+      <!-- Close Modal Button -->
       <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
         <i class="fa-solid fa-xmark"></i>
       </button>
 
       <!-- Auth Header Tabs -->
       <div class="flex border-b border-slate-700 mb-6">
-        <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-indigo-500 text-indigo-400 transition">
+        <button id="tab-login" onclick="switchAuthTab('login')" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-brand-500 text-brand-400 transition">
           <i class="fa-solid fa-right-to-bracket mr-2"></i>เข้าสู่ระบบ
         </button>
         <button id="tab-register" onclick="switchAuthTab('register')" class="flex-1 py-2 text-center text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition">
@@ -147,7 +149,7 @@
           <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อผู้ใช้ หรือ อีเมล</label>
           <div class="relative">
             <i class="fa-solid fa-user absolute left-3 top-3 text-slate-500 text-xs"></i>
-            <input type="text" id="login-username" required placeholder="admin หรือ student1" class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+            <input type="text" id="login-username" required placeholder="admin หรือ student1" class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500 transition">
           </div>
         </div>
 
@@ -155,18 +157,18 @@
           <label class="block text-xs font-medium text-slate-300 mb-1">รหัสผ่าน</label>
           <div class="relative">
             <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-xs"></i>
-            <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500 transition">
+            <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500 transition">
           </div>
         </div>
 
         <div class="pt-2">
-          <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+          <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg shadow-brand-600/30 flex items-center justify-center gap-2">
             <i class="fa-solid fa-right-to-bracket"></i> เข้าสู่ระบบ
           </button>
         </div>
 
-        <div class="bg-indigo-950/40 border border-indigo-800/40 rounded-lg p-3 text-xs text-indigo-300 mt-4 space-y-1">
-          <p class="font-semibold"><i class="fa-solid fa-info-circle mr-1"></i> บัญชีทดสอบระบบ (Demo Accounts):</p>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-3 text-xs text-slate-400 mt-4 space-y-1">
+          <p class="font-semibold text-brand-300"><i class="fa-solid fa-info-circle mr-1"></i> บัญชีทดสอบระบบ (Demo Accounts):</p>
           <p class="font-mono text-[11px]">• Admin: <span class="text-white">admin</span> / <span class="text-white">password123</span></p>
           <p class="font-mono text-[11px]">• Member: <span class="text-white">student1</span> / <span class="text-white">password123</span></p>
         </div>
@@ -176,22 +178,22 @@
       <form id="form-register" onsubmit="handleRegisterSubmit(event)" class="space-y-4 hidden">
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อ-นามสกุล</label>
-          <input type="text" id="reg-fullname" required placeholder="สมชาย ใจดี" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="text" id="reg-fullname" required placeholder="สมชาย ใจดี" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อผู้ใช้ (Username)</label>
-          <input type="text" id="reg-username" required placeholder="somchai_code" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="text" id="reg-username" required placeholder="somchai_code" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">อีเมล (Email)</label>
-          <input type="email" id="reg-email" required placeholder="somchai@department.ac.th" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="email" id="reg-email" required placeholder="somchai@department.ac.th" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">รหัสผ่าน</label>
-          <input type="password" id="reg-password" required placeholder="••••••••" minlength="6" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="password" id="reg-password" required placeholder="••••••••" minlength="6" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div class="pt-2">
@@ -205,7 +207,7 @@
   </div>
 
 
-  <!-- 2. CREATE / EDIT PROJECT MODAL -->
+  <!-- 2. CREATE / EDIT PROJECT FORM MODAL -->
   <div id="modal-project-form" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
     <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeProjectModal()"></div>
     
@@ -216,12 +218,12 @@
       </button>
 
       <div class="flex items-center space-x-3 mb-6 border-b border-slate-700 pb-4">
-        <div class="w-10 h-10 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+        <div class="w-10 h-10 rounded-lg bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-400">
           <i class="fa-solid fa-folder-plus text-lg"></i>
         </div>
         <div>
           <h2 id="modal-project-title" class="text-xl font-bold text-white">สร้างโปรเจกต์ใหม่</h2>
-          <p class="text-xs text-slate-400">กรอกข้อมูลโปรเจกต์และแท็กที่เกี่ยวข้อง</p>
+          <p class="text-xs text-slate-400">กรอกข้อมูลรายละเอียดโปรเจกต์และแท็กที่เกี่ยวข้อง</p>
         </div>
       </div>
 
@@ -230,55 +232,55 @@
 
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อโปรเจกต์ <span class="text-rose-400">*</span></label>
-          <input type="text" id="p-title" required placeholder="เช่น Smart IoT Farm System" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="text" id="p-title" required placeholder="เช่น Smart Agriculture IoT & AI System" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">คำอธิบายสั้น (Short Description) <span class="text-rose-400">*</span></label>
-          <input type="text" id="p-short-desc" required placeholder="สรุปเนื้อหาโปรเจกต์แบบย่อใน 1-2 ประโยค" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+          <input type="text" id="p-short-desc" required placeholder="สรุปเนื้อหาโปรเจกต์แบบย่อใน 1-2 ประโยค" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
         </div>
 
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">รายละเอียดฉบับเต็ม (Full Description) <span class="text-rose-400">*</span></label>
-          <textarea id="p-full-desc" rows="4" required placeholder="อธิบายวัตถุประสงค์ สถาปัตยกรรมระบบ ฟีเจอร์เด่น และเทคโนโลยีที่ใช้..." class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500"></textarea>
+          <textarea id="p-full-desc" rows="4" required placeholder="อธิบายวัตถุประสงค์ สถาปัตยกรรมระบบ ฟีเจอร์เด่น และเทคโนโลยีที่ใช้..." class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500"></textarea>
         </div>
 
         <!-- Cover Image Input (File Upload OR Image URL) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">อัปโหลดรูปภาพปก (File Upload)</label>
-            <input type="file" id="p-file-image" accept="image/*" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+            <input type="file" id="p-file-image" accept="image/*" class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-600 file:text-white hover:file:bg-brand-500">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">หรือระบุ URL รูปภาพ (Image URL)</label>
-            <input type="url" id="p-url-image" placeholder="https://images.unsplash.com/..." class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+            <input type="url" id="p-url-image" placeholder="https://images.unsplash.com/..." class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
           </div>
         </div>
 
-        <!-- Links -->
+        <!-- External Links -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">ลิงก์ Demo System URL</label>
-            <input type="url" id="p-demo-url" placeholder="https://demo.example.com" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+            <input type="url" id="p-demo-url" placeholder="https://demo.example.com" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-300 mb-1">ลิงก์ GitHub Repository URL</label>
-            <input type="url" id="p-github-url" placeholder="https://github.com/user/project" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
+            <input type="url" id="p-github-url" placeholder="https://github.com/user/project" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
           </div>
         </div>
 
         <!-- Tags Input -->
         <div>
           <label class="block text-xs font-medium text-slate-300 mb-1">แท็กประจำโปรเจกต์ (คั่นด้วยเครื่องหมายจุลภาค ,)</label>
-          <input type="text" id="p-tags" placeholder="Node.js, MariaDB, Tailwind CSS, AI" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-indigo-500">
-          <p class="text-[11px] text-slate-400 mt-1">ตัวอย่าง: Node.js, React, Mobile App, Machine Learning</p>
+          <input type="text" id="p-tags" placeholder="IoT, React, ESP32, Node.js, AI" class="w-full px-3.5 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
+          <p class="text-[11px] text-slate-400 mt-1">ตัวอย่าง: IoT, React, ESP32, Node.js, AI, Mobile App</p>
         </div>
 
         <div class="pt-4 flex justify-end space-x-3 border-t border-slate-700">
           <button type="button" onclick="closeProjectModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition">
             ยกเลิก
           </button>
-          <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-medium transition shadow-lg shadow-indigo-600/30 flex items-center gap-2">
+          <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-medium transition shadow-lg shadow-brand-600/30 flex items-center gap-2">
             <i class="fa-solid fa-floppy-disk"></i> บันทึกข้อมูลโปรเจกต์
           </button>
         </div>
@@ -287,7 +289,7 @@
   </div>
 
 
-  <!-- 3. PROJECT DETAIL MODAL -->
+  <!-- 3. PROJECT DETAIL POPUP MODAL -->
   <div id="modal-project-detail" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
     <div class="fixed inset-0 bg-slate-950/85 backdrop-blur-md" onclick="closeDetailModal()"></div>
     
@@ -298,7 +300,7 @@
       </button>
 
       <!-- Cover Image Header -->
-      <div class="relative h-64 sm:h-80 w-full overflow-hidden rounded-t-2xl">
+      <div class="relative h-64 sm:h-80 w-full overflow-hidden rounded-t-2xl bg-slate-900">
         <img id="detail-cover" src="" alt="Project Cover" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
         <div class="absolute bottom-4 left-6 right-6">
@@ -310,10 +312,10 @@
       <!-- Detail Body Content -->
       <div class="p-6 sm:p-8 space-y-6">
         
-        <!-- Author & Date Metadata -->
-        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 text-xs text-slate-400 gap-2">
+        <!-- Author & Date Metadata & External Links -->
+        <div class="flex flex-wrap items-center justify-between border-b border-slate-800 pb-4 text-xs text-slate-400 gap-3">
           <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold">
+            <div class="w-8 h-8 rounded-full bg-brand-600/30 border border-brand-500/40 flex items-center justify-center text-brand-300 font-bold">
               <i class="fa-solid fa-user"></i>
             </div>
             <div>
@@ -322,7 +324,7 @@
             </div>
           </div>
 
-          <!-- Links -->
+          <!-- Demo & GitHub Links -->
           <div class="flex items-center space-x-3">
             <a id="detail-demo-link" href="#" target="_blank" class="hidden bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/40 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
               <i class="fa-solid fa-arrow-up-right-from-square text-xs"></i> Live Demo
@@ -346,7 +348,7 @@
 
         <!-- Owner / Admin Action Bar -->
         <div id="detail-owner-actions" class="hidden border-t border-slate-800 pt-4 flex justify-end space-x-3">
-          <button id="btn-detail-edit" class="bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
+          <button id="btn-detail-edit" class="bg-brand-600/20 hover:bg-brand-600/30 text-brand-300 border border-brand-500/40 px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
             <i class="fa-solid fa-pen-to-square"></i> แก้ไขโปรเจกต์
           </button>
           <button id="btn-detail-delete" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/40 px-4 py-2 rounded-lg text-xs font-semibold transition flex items-center gap-1.5">
@@ -358,7 +360,7 @@
     </div>
   </div>
 
-  <!-- Main JavaScript File -->
+  <!-- JavaScript App Logic -->
   <script src="js/app.js"></script>
 </body>
 </html>

@@ -2,7 +2,10 @@
  * Department Project Showcase - Admin Layout Customizer JavaScript (SortableJS Edition)
  */
 
-const API_BASE = '/api';
+// Dynamic API Base URL detection:
+const API_BASE = (window.location.port === '5000') 
+  ? '/api' 
+  : 'http://localhost:5000/api';
 
 // Safe LocalStorage Retrieval Wrapper
 let jwtToken = localStorage.getItem('token') || null;
@@ -48,7 +51,7 @@ async function loadAdminLayout() {
     }
   } catch (error) {
     console.error('Error loading layout:', error);
-    showToast('Failed to load layout from backend', 'error');
+    showToast('Failed to load layout from backend (Port 5000)', 'error');
   }
 }
 
