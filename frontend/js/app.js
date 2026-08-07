@@ -1,28 +1,9 @@
 // frontend/js/app.js
 
 // --- 1. Dynamic API Base URL Setup ---
-const determineApiBaseUrl = () => {
-  const hostname = window.location.hostname;
-  const protocol = window.location.protocol;
-  
-  // If opening via file:// protocol (direct file open)
-  if (protocol === 'file:') {
-    return 'http://localhost:5000/api';
-  }
-  
-  // If running via Live Server (port 5500, etc) or frontend dev server
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    // If the port is not 5000 (meaning it's a separate dev server), point to backend port 5000
-    if (window.location.port !== '5000') {
-      return 'http://localhost:5000/api';
-    }
-  }
-  
-  // Default for production or same-origin deployment
-  return '/api';
-};
-
-const API_BASE_URL = determineApiBaseUrl();
+const API_BASE_URL = window.location.origin.includes('5000') 
+  ? `${window.location.origin}/api` 
+  : 'http://localhost:5000/api';
 
 // --- 2. Global State ---
 let state = {
@@ -220,7 +201,7 @@ function renderTagsFilter() {
 }
 
 function renderProjects() {
-  const grid = document.getElementById('projects-grid');
+  const grid = document.getElementById('projects-container');
   if (!grid) return;
   
   grid.innerHTML = '';
@@ -371,7 +352,7 @@ function setupEventListeners() {
   }
 
   // Project Actions Delegation (Edit/Delete/View)
-  const projectsGrid = document.getElementById('projects-grid');
+  const projectsGrid = document.getElementById('projects-container');
   if (projectsGrid) {
     projectsGrid.addEventListener('click', async (e) => {
       const editBtn = e.target.closest('.edit-project-btn');
@@ -511,8 +492,8 @@ async function openEditModal(id) {
       const project = await res.json();
       document.getElementById('project-id').value = project.id;
       document.getElementById('title').value = project.title;
-      document.getElementById('description').value = project.description;
-      document.getElementById('content').value = project.content;
+      document.getElementById('short_description').value = project.short_description;
+      document.getElementById('full_description').value = project.full_description;
       document.getElementById('github_url').value = project.github_url || '';
       document.getElementById('demo_url').value = project.demo_url || '';
       document.getElementById('tags').value = (project.tags || []).join(', ');
@@ -541,7 +522,23 @@ async function deleteProject(id) {
 }
 
 // --- 8. Initialization ---
+async function checkBackendConnection() {
+  const offlineBanner = document.getElementById('offline-banner');
+  try {
+    const res = await fetch(`${API_BASE_URL.replace('/api', '')}/api/health`);
+    if (res.ok) {
+      if (offlineBanner) offlineBanner.classList.add('hidden');
+      return true;
+    }
+  } catch (err) {
+    console.error('Backend connection error:', err);
+  }
+  if (offlineBanner) offlineBanner.classList.remove('hidden');
+  return false;
+}
+
 async function init() {
+  await checkBackendConnection();
   await checkAuth();
   await fetchLayout();
   await fetchTags();
