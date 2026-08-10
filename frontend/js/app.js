@@ -727,3 +727,26 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
+
+// Unlock Admin Credentials View
+function handleUnlockAdmin() {
+  const input = document.getElementById('admin-passcode-input');
+  const errorEl = document.getElementById('admin-passcode-error');
+  const lockedView = document.getElementById('admin-locked-view');
+  const unlockedView = document.getElementById('admin-unlocked-view');
+
+  if (!input) return;
+
+  if (input.value.trim() === '140963') {
+    lockedView.classList.add('hidden');
+    unlockedView.classList.remove('hidden');
+    if (errorEl) errorEl.classList.add('hidden');
+    showToast('ปลดล็อกข้อมูลบัญชีผู้ดูแลระบบสำเร็จ', 'success');
+  } else {
+    if (errorEl) {
+      errorEl.classList.remove('hidden');
+    }
+    showToast('รหัสผ่านไม่ถูกต้อง', 'error');
+  }
+}
+

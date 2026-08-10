@@ -375,7 +375,7 @@
             type="text" 
             id="login-username" 
             required 
-            placeholder="ตัวอย่าง: admin หรือ student1"
+            placeholder="ตัวอย่าง: admin"
             class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
           >
         </div>
@@ -396,10 +396,40 @@
           เข้าสู่ระบบ
         </button>
 
-        <div class="mt-4 p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
-          <p class="font-semibold text-slate-300">🔑 บัญชีทดสอบในระบบ (Seed Users):</p>
-          <p>• Admin: <span class="font-mono text-brand-300">admin</span> / <span class="font-mono text-brand-300">password123</span></p>
-          <p>• Student: <span class="font-mono text-brand-300">student1</span> / <span class="font-mono text-brand-300">password123</span></p>
+        <div class="mt-4 p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-2">
+          <div class="flex items-center justify-between">
+            <p class="font-semibold text-slate-300">🔑 ดูบัญชีแอดมิน (Admin Account):</p>
+          </div>
+
+          <!-- Locked View -->
+          <div id="admin-locked-view" class="space-y-2">
+            <p class="text-slate-400">กรอกรหัสผ่านเพื่อดูข้อมูลบัญชีแอดมิน:</p>
+            <div class="flex gap-2">
+              <input 
+                type="password" 
+                id="admin-passcode-input" 
+                placeholder="กรอกรหัสผ่านเพื่อปลดล็อก" 
+                class="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                onkeydown="if(event.key === 'Enter') { event.preventDefault(); handleUnlockAdmin(); }"
+              >
+              <button 
+                type="button" 
+                onclick="handleUnlockAdmin()" 
+                class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-lg text-xs transition shrink-0"
+              >
+                ปลดล็อก
+              </button>
+            </div>
+            <p id="admin-passcode-error" class="hidden text-rose-400 text-[11px] font-medium">❌ รหัสผ่านไม่ถูกต้อง</p>
+          </div>
+
+          <!-- Unlocked View -->
+          <div id="admin-unlocked-view" class="hidden bg-slate-950/70 p-2.5 rounded-lg border border-emerald-900/50 space-y-1">
+            <p class="text-emerald-400 font-semibold flex items-center gap-1">
+              <span>✓</span> บัญชีผู้ดูแลระบบ:
+            </p>
+            <p class="text-slate-300">• Admin: <span class="font-mono text-brand-300">admin</span> / <span class="font-mono text-brand-300">password123</span></p>
+          </div>
         </div>
       </form>
 
