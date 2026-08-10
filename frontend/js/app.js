@@ -67,14 +67,21 @@ function updateAuthUI() {
 
     document.getElementById('user-fullname').textContent = currentUser.fullname || currentUser.username;
     document.getElementById('dropdown-username').textContent = `@${currentUser.username}`;
-    document.getElementById('user-avatar').textContent = (currentUser.fullname || currentUser.username).charAt(0).toUpperCase();
+
+    const avatarEl = document.getElementById('user-avatar');
+    if (currentUser.avatar) {
+      const avatarUrl = currentUser.avatar.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${currentUser.avatar}` : currentUser.avatar;
+      avatarEl.innerHTML = `<img src="${avatarUrl}" class="w-full h-full object-cover rounded-lg" onerror="this.outerHTML='${(currentUser.fullname || currentUser.username).charAt(0).toUpperCase()}'">`;
+    } else {
+      avatarEl.textContent = (currentUser.fullname || currentUser.username).charAt(0).toUpperCase();
+    }
 
     const roleBadge = document.getElementById('user-role-badge');
     roleBadge.textContent = currentUser.role;
     if (currentUser.role === 'admin') {
-      roleBadge.className = 'block text-[10px] text-purple-400 font-mono font-bold uppercase tracking-wider';
+      roleBadge.className = 'block text-[9px] text-purple-400 font-mono font-bold uppercase tracking-wider leading-none';
     } else {
-      roleBadge.className = 'block text-[10px] text-brand-400 font-mono uppercase';
+      roleBadge.className = 'block text-[9px] text-brand-400 font-mono font-bold uppercase tracking-wider leading-none';
     }
   } else {
     loggedOutEl.classList.remove('hidden');
@@ -312,14 +319,19 @@ function renderProjectGrid(projects) {
 
         <!-- Footer Meta & Detail Button -->
         <div class="pt-3.5 border-t border-slate-800/80 flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <div class="w-6 h-6 rounded-full bg-dark-800 border border-slate-700 text-brand-400 flex items-center justify-center text-[10px] font-bold font-mono">
+          <button 
+            type="button"
+            onclick="openProfileModal('${escapeHtml(project.author_username || '')}')" 
+            class="flex items-center gap-2 group/author text-left focus:outline-none"
+            title="ดูโปรไฟล์เจ้าของผลงาน"
+          >
+            <div class="w-6 h-6 rounded-full bg-dark-800 border border-slate-700 text-brand-400 flex items-center justify-center text-[10px] font-bold font-mono overflow-hidden">
               ${(project.author_name || 'U').charAt(0).toUpperCase()}
             </div>
-            <span class="text-[11px] font-medium text-slate-300 truncate max-w-[110px]">
+            <span class="text-[11px] font-medium text-slate-300 group-hover/author:text-brand-400 transition truncate max-w-[110px]">
               ${escapeHtml(project.author_name || 'Anonymous')}
             </span>
-          </div>
+          </button>
 
           <button 
             onclick="openDetailModal(${project.id})" 
@@ -749,4 +761,242 @@ function handleUnlockAdmin() {
     showToast('รหัสผ่านไม่ถูกต้อง', 'error');
   }
 }
+
+// ------------------------------------------------------------
+// 10. USER PROFILE ENGINE
+// ------------------------------------------------------------
+let currentProfileUser = null;
+
+async function openProfileModal(targetUsername = null) {
+  const username = targetUsername || (currentUser ? currentUser.username : null);
+
+  if (!username) {
+    openAuthModal('login');
+    return;
+  }
+
+  const modal = document.getElementById('profile-modal');
+  modal.classList.remove('hidden');
+  toggleProfileTab('projects');
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/profile/${encodeURIComponent(username)}`);
+    const result = await response.json();
+
+    if (result.success) {
+      const profile = result.data.profile;
+      const projects = result.data.projects || [];
+      currentProfileUser = profile;
+
+      // Populate Header Info
+      document.getElementById('profile-fullname').textContent = profile.fullname;
+      document.getElementById('profile-username').textContent = `@${profile.username}`;
+      
+      const roleBadge = document.getElementById('profile-role-badge');
+      roleBadge.textContent = profile.role.toUpperCase();
+      if (profile.role === 'admin') {
+        roleBadge.className = 'absolute -bottom-2 -right-2 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-purple-600 text-white border border-purple-400 shadow';
+      } else {
+        roleBadge.className = 'absolute -bottom-2 -right-2 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-brand-600 text-white border border-brand-400 shadow';
+      }
+
+      // Bio
+      const bioEl = document.getElementById('profile-bio');
+      bioEl.textContent = profile.bio && profile.bio.trim() !== '' ? profile.bio : 'ยังไม่มีคำอธิบายประวัติย่อ';
+
+      // Avatar
+      const avatarContainer = document.getElementById('profile-avatar-container');
+      if (profile.avatar) {
+        const avatarUrl = profile.avatar.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${profile.avatar}` : profile.avatar;
+        avatarContainer.innerHTML = `<img src="${avatarUrl}" class="w-full h-full object-cover rounded-2xl" onerror="this.outerHTML='${profile.fullname.charAt(0).toUpperCase()}'">`;
+      } else {
+        avatarContainer.textContent = profile.fullname.charAt(0).toUpperCase();
+      }
+
+      // Contact & Links
+      const emailWrap = document.getElementById('profile-email-wrap');
+      const emailLink = document.getElementById('profile-email');
+      if (profile.email) {
+        emailLink.textContent = profile.email;
+        emailLink.href = `mailto:${profile.email}`;
+        emailWrap.classList.remove('hidden');
+      } else {
+        emailWrap.classList.add('hidden');
+      }
+
+      const githubWrap = document.getElementById('profile-github-wrap');
+      const githubLink = document.getElementById('profile-github');
+      if (profile.github) {
+        githubLink.href = profile.github;
+        githubWrap.classList.remove('hidden');
+      } else {
+        githubWrap.classList.add('hidden');
+      }
+
+      const websiteWrap = document.getElementById('profile-website-wrap');
+      const websiteLink = document.getElementById('profile-website');
+      if (profile.website) {
+        websiteLink.href = profile.website;
+        websiteWrap.classList.remove('hidden');
+      } else {
+        websiteWrap.classList.add('hidden');
+      }
+
+      // Date & Projects Count
+      document.getElementById('profile-joined-date').textContent = new Date(profile.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'short', day: 'numeric' });
+      document.getElementById('profile-projects-count').textContent = projects.length;
+
+      // Edit Button Visibility
+      const editBtn = document.getElementById('edit-profile-btn');
+      const editTabBtn = document.getElementById('tab-profile-edit');
+      const isSelf = currentUser && currentUser.id === profile.id;
+
+      if (isSelf) {
+        editBtn.classList.remove('hidden');
+        editTabBtn.classList.remove('hidden');
+        populateEditProfileForm(profile);
+      } else {
+        editBtn.classList.add('hidden');
+        editTabBtn.classList.add('hidden');
+      }
+
+      // Render User's Projects
+      renderProfileProjects(projects);
+
+    } else {
+      showToast(result.message || 'ไม่สามารถดึงข้อมูลโปรไฟล์ได้', 'error');
+      closeProfileModal();
+    }
+  } catch (error) {
+    console.error('Open Profile Error:', error);
+    showToast('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์', 'error');
+  }
+}
+
+function closeProfileModal() {
+  document.getElementById('profile-modal').classList.add('hidden');
+}
+
+function toggleProfileTab(tab) {
+  const projectsTab = document.getElementById('profile-tab-projects');
+  const editTab = document.getElementById('profile-tab-edit');
+  const projectsBtn = document.getElementById('tab-profile-projects');
+  const editBtn = document.getElementById('tab-profile-edit');
+
+  if (tab === 'edit') {
+    projectsTab.classList.add('hidden');
+    editTab.classList.remove('hidden');
+    editBtn.className = 'py-2.5 px-4 text-xs font-semibold text-brand-400 border-b-2 border-brand-500 transition flex items-center gap-2';
+    projectsBtn.className = 'py-2.5 px-4 text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2';
+  } else {
+    editTab.classList.add('hidden');
+    projectsTab.classList.remove('hidden');
+    projectsBtn.className = 'py-2.5 px-4 text-xs font-semibold text-brand-400 border-b-2 border-brand-500 transition flex items-center gap-2';
+    editBtn.className = 'py-2.5 px-4 text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2';
+  }
+}
+
+function renderProfileProjects(projects) {
+  const gridContainer = document.getElementById('profile-projects-grid');
+  const emptyState = document.getElementById('profile-empty-projects');
+
+  gridContainer.innerHTML = '';
+
+  if (projects.length === 0) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+
+  projects.forEach(project => {
+    const coverUrl = project.cover_image 
+      ? (project.cover_image.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${project.cover_image}` : project.cover_image)
+      : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80';
+
+    const card = document.createElement('div');
+    card.className = 'glass-card rounded-xl p-3.5 flex gap-3 items-center hover:border-brand-500/40 transition cursor-pointer';
+    card.onclick = () => {
+      closeProfileModal();
+      openDetailModal(project.id);
+    };
+
+    card.innerHTML = `
+      <img src="${coverUrl}" class="w-16 h-16 rounded-lg object-cover bg-dark-950 shrink-0 border border-slate-800">
+      <div class="flex-1 min-w-0">
+        <h4 class="text-xs font-bold text-slate-100 truncate">${escapeHtml(project.title)}</h4>
+        <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${escapeHtml(project.short_description)}</p>
+        <span class="inline-block text-[10px] font-mono text-brand-400 mt-1">#${escapeHtml(project.tags ? project.tags.split(',')[0] : 'Project')}</span>
+      </div>
+      <i class="fa-solid fa-chevron-right text-xs text-slate-500 pr-1"></i>
+    `;
+
+    gridContainer.appendChild(card);
+  });
+}
+
+function populateEditProfileForm(profile) {
+  document.getElementById('edit-fullname').value = profile.fullname || '';
+  document.getElementById('edit-bio').value = profile.bio || '';
+  document.getElementById('edit-email').value = profile.email || '';
+  document.getElementById('edit-github').value = profile.github || '';
+  document.getElementById('edit-website').value = profile.website || '';
+  document.getElementById('edit-avatar-url').value = profile.avatar && !profile.avatar.startsWith('/uploads') ? profile.avatar : '';
+  document.getElementById('edit-avatar-file').value = '';
+  document.getElementById('edit-password').value = '';
+}
+
+async function handleUpdateProfile(event) {
+  event.preventDefault();
+
+  if (!authToken) {
+    showToast('กรุณาเข้าสู่ระบบก่อนอัปเดตโปรไฟล์', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('fullname', document.getElementById('edit-fullname').value.trim());
+  formData.append('bio', document.getElementById('edit-bio').value.trim());
+  formData.append('email', document.getElementById('edit-email').value.trim());
+  formData.append('github', document.getElementById('edit-github').value.trim());
+  formData.append('website', document.getElementById('edit-website').value.trim());
+  formData.append('avatar_url', document.getElementById('edit-avatar-url').value.trim());
+  formData.append('new_password', document.getElementById('edit-password').value.trim());
+
+  const avatarFile = document.getElementById('edit-avatar-file').files[0];
+  if (avatarFile) {
+    formData.append('avatar_file', avatarFile);
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/profile/me`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      currentUser = result.user;
+      if (result.token) authToken = result.token;
+
+      localStorage.setItem('showcase_user', JSON.stringify(currentUser));
+      localStorage.setItem('showcase_token', authToken);
+
+      updateAuthUI();
+      showToast('อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว!', 'success');
+      openProfileModal(currentUser.username);
+      fetchProjects();
+    } else {
+      showToast(result.message || 'ไม่สามารถอัปเดตโปรไฟล์ได้', 'error');
+    }
+  } catch (error) {
+    console.error('Update Profile error:', error);
+    showToast('เกิดข้อผิดพลาดในการอัปเดตข้อมูลโปรไฟล์', 'error');
+  }
+}
+
 

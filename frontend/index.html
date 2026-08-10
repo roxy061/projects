@@ -210,6 +210,12 @@
                 <p class="text-xs font-semibold text-slate-200 font-mono truncate" id="dropdown-username">@username</p>
               </div>
               <button 
+                onclick="openProfileModal()" 
+                class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition"
+              >
+                <i class="fa-solid fa-user-gear text-brand-400"></i>โปรไฟล์ของฉัน
+              </button>
+              <button 
                 onclick="filterMyProjects()" 
                 class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition"
               >
@@ -697,6 +703,209 @@
         <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-800" id="detail-actions">
           <!-- Inject Demo and GitHub buttons via JS -->
         </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL 4: USER PROFILE MODAL (PUBLIC & EDIT VIEW) -->
+  <!-- ============================================================ -->
+  <div id="profile-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto">
+    <div class="glass-card w-full max-w-3xl rounded-3xl border border-slate-800/90 p-6 sm:p-8 shadow-2xl relative my-8">
+      
+      <!-- Close Button -->
+      <button onclick="closeProfileModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition z-10">
+        <i class="fa-solid fa-xmark text-base"></i>
+      </button>
+
+      <!-- Profile Header Card -->
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 bg-dark-900/90 border border-slate-800/90 rounded-2xl relative mb-6">
+        <!-- Avatar Image / Placeholder -->
+        <div class="relative">
+          <div id="profile-avatar-container" class="w-20 h-20 rounded-2xl bg-brand-600/20 border-2 border-brand-500/40 text-brand-300 flex items-center justify-center text-2xl font-bold font-mono shadow-xl overflow-hidden">
+            U
+          </div>
+          <span id="profile-role-badge" class="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-brand-600 text-white border border-brand-400 shadow">
+            STUDENT
+          </span>
+        </div>
+
+        <div class="flex-1 text-center sm:text-left space-y-1.5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 id="profile-fullname" class="font-heading text-xl font-bold text-white leading-tight">User Full Name</h2>
+              <p id="profile-username" class="text-xs text-brand-400 font-mono">@username</p>
+            </div>
+            
+            <!-- Edit Profile Button (Visible when viewing own profile) -->
+            <button 
+              id="edit-profile-btn" 
+              onclick="toggleProfileTab('edit')" 
+              class="hidden px-3 py-1.5 text-xs font-semibold bg-dark-800 hover:bg-brand-600 text-slate-200 hover:text-white border border-slate-700 hover:border-brand-500 rounded-xl transition flex items-center justify-center gap-1.5 self-center sm:self-start"
+            >
+              <i class="fa-solid fa-pen-to-square text-[10px]"></i>
+              <span>แก้ไขโปรไฟล์</span>
+            </button>
+          </div>
+
+          <p id="profile-bio" class="text-xs text-slate-300 leading-relaxed whitespace-pre-line">ยังไม่มีคำอธิบายประวัติย่อ</p>
+
+          <!-- Social Links & Contact -->
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2 text-xs">
+            <span id="profile-email-wrap" class="hidden text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-envelope text-slate-500"></i>
+              <a id="profile-email" href="#" class="text-slate-300 hover:text-brand-400 transition"></a>
+            </span>
+            <span id="profile-github-wrap" class="hidden text-slate-400 flex items-center gap-1.5">
+              <i class="fa-brands fa-github text-slate-400"></i>
+              <a id="profile-github" href="#" target="_blank" class="text-slate-300 hover:text-brand-400 transition">GitHub</a>
+            </span>
+            <span id="profile-website-wrap" class="hidden text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-globe text-slate-500"></i>
+              <a id="profile-website" href="#" target="_blank" class="text-slate-300 hover:text-brand-400 transition">Website</a>
+            </span>
+            <span class="text-slate-500 text-[11px] font-mono flex items-center gap-1">
+              <i class="fa-regular fa-calendar"></i>
+              <span>สมาชิกเมื่อ: <span id="profile-joined-date">-</span></span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profile Tabs (View Projects vs Edit Profile) -->
+      <div class="flex border-b border-slate-800 mb-6">
+        <button 
+          id="tab-profile-projects" 
+          onclick="toggleProfileTab('projects')" 
+          class="py-2.5 px-4 text-xs font-semibold text-brand-400 border-b-2 border-brand-500 transition flex items-center gap-2"
+        >
+          <i class="fa-solid fa-folder-open"></i>
+          <span>ผลงานโปรเจกต์ (<span id="profile-projects-count">0</span>)</span>
+        </button>
+        <button 
+          id="tab-profile-edit" 
+          onclick="toggleProfileTab('edit')" 
+          class="hidden py-2.5 px-4 text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2"
+        >
+          <i class="fa-solid fa-gear"></i>
+          <span>ตั้งค่าข้อมูลโปรไฟล์</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: USER'S PROJECTS GRID -->
+      <div id="profile-tab-projects" class="space-y-4">
+        <div id="profile-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Inject user's project cards via JS -->
+        </div>
+        <div id="profile-empty-projects" class="hidden text-center py-10 bg-dark-900/50 rounded-2xl border border-dashed border-slate-800">
+          <p class="text-xs text-slate-400">ยังไม่มีผลงานโปรเจกต์ในระบบ</p>
+        </div>
+      </div>
+
+      <!-- TAB 2: EDIT PROFILE FORM -->
+      <div id="profile-tab-edit" class="hidden">
+        <form id="edit-profile-form" onsubmit="handleUpdateProfile(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อ-นามสกุล (Full Name)</label>
+            <input 
+              type="text" 
+              id="edit-fullname" 
+              required 
+              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">คำอธิบายแนะนำตัว (Bio)</label>
+            <textarea 
+              id="edit-bio" 
+              rows="3" 
+              placeholder="เขียนแนะนำตัว สกิลความเชี่ยวชาญ หรือความสนใจเพิ่มเติม..." 
+              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">อีเมลติดต่อ (Email)</label>
+              <input 
+                type="email" 
+                id="edit-email" 
+                placeholder="name@example.com"
+                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">GitHub Profile URL</label>
+              <input 
+                type="url" 
+                id="edit-github" 
+                placeholder="https://github.com/username"
+                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              >
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">เว็บไซต์ส่วนตัว / พอร์ตโฟลิโอ (Website URL)</label>
+              <input 
+                type="url" 
+                id="edit-website" 
+                placeholder="https://myportfolio.com"
+                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              >
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL รูปโปรไฟล์ (Avatar Image URL)</label>
+              <input 
+                type="url" 
+                id="edit-avatar-url" 
+                placeholder="https://images.unsplash.com/..."
+                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              >
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">หรืออัปโหลดรูปโปรไฟล์ใหม่</label>
+            <input 
+              type="file" 
+              id="edit-avatar-file" 
+              accept="image/*"
+              class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-dark-800 file:text-slate-300 hover:file:bg-dark-700"
+            >
+          </div>
+
+          <div class="pt-2 border-t border-slate-800">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">เปลี่ยนรหัสผ่านใหม่ (หากไม่ต้องการเปลี่ยนให้เว้นว่างไว้)</label>
+            <input 
+              type="password" 
+              id="edit-password" 
+              placeholder="รหัสผ่านใหม่ อย่างน้อย 6 ตัวอักษร"
+              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            >
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+            <button 
+              type="button" 
+              onclick="toggleProfileTab('projects')" 
+              class="px-4 py-2 bg-dark-800 hover:bg-dark-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition"
+            >
+              ยกเลิก
+            </button>
+            <button 
+              type="submit" 
+              class="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition btn-inset-shine"
+            >
+              บันทึกการเปลี่ยนแปลง
+            </button>
+          </div>
+        </form>
       </div>
 
     </div>

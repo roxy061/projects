@@ -92,16 +92,41 @@ const dbConfig = {
 const pool = mysql.createPool(dbConfig);
 
 // ทดสอบการเชื่อมต่อฐานข้อมูล
+// ทดสอบการเชื่อมต่อฐานข้อมูลและอัปเดต Schema
 async function checkDatabaseConnection() {
   try {
     const connection = await pool.getConnection();
     console.log('✅ เชื่อมต่อฐานข้อมูล MariaDB/MySQL สำเร็จ!');
     connection.release();
+    await migrateDatabaseSchema();
     return true;
   } catch (error) {
     console.error('⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูลได้:', error.message);
     console.error('กรุณาตรวจสอบว่า MariaDB/MySQL ทำงานอยู่ และข้อมูลใน .env หรือ database.sql ถูกต้อง');
     return false;
+  }
+}
+
+// อัปเดตโครงสร้างตาราง users อัตโนมัติหากยังไม่มีคอลัมน์โปรไฟล์
+async function migrateDatabaseSchema() {
+  try {
+    const columns = [
+      "ALTER TABLE users ADD COLUMN `bio` TEXT DEFAULT NULL",
+      "ALTER TABLE users ADD COLUMN `email` VARCHAR(100) DEFAULT NULL",
+      "ALTER TABLE users ADD COLUMN `github` VARCHAR(255) DEFAULT NULL",
+      "ALTER TABLE users ADD COLUMN `website` VARCHAR(255) DEFAULT NULL",
+      "ALTER TABLE users ADD COLUMN `avatar` VARCHAR(255) DEFAULT NULL"
+    ];
+
+    for (const colQuery of columns) {
+      try {
+        await pool.query(colQuery);
+      } catch (err) {
+        // ข้ามข้อผิดพลาดกรณีมีคอลัมน์อยู่แล้ว
+      }
+    }
+  } catch (error) {
+    console.error('Schema migration note:', error.message);
   }
 }
 
@@ -174,7 +199,12 @@ app.post('/api/auth/register', async (req, res) => {
       id: result.insertId,
       username: username.trim(),
       fullname: fullname.trim(),
-      role: 'student'
+      role: 'student',
+      bio: '',
+      email: '',
+      github: '',
+      website: '',
+      avatar: null
     };
 
     // สร้าง JWT Token
@@ -228,7 +258,12 @@ app.post('/api/auth/login', async (req, res) => {
       id: user.id,
       username: user.username,
       fullname: user.fullname,
-      role: user.role
+      role: user.role,
+      bio: user.bio || '',
+      email: user.email || '',
+      github: user.github || '',
+      website: user.website || '',
+      avatar: user.avatar || null
     };
 
     // สร้าง JWT Token
@@ -243,6 +278,155 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (error) {
     console.error('Login Error:', error);
     res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ' });
+  }
+});
+
+/**
+ * ============================================================
+ * USER PROFILE ENDPOINTS
+ * ============================================================
+ */
+
+/**
+ * @route GET /api/users/profile/me
+ * @desc ดึงข้อมูลโปรไฟล์ของผู้ใช้ที่เข้าสู่ระบบปัจจุบัน
+ */
+app.get('/api/users/profile/me', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [users] = await pool.query(
+      'SELECT id, username, fullname, role, bio, email, github, website, avatar, created_at FROM users WHERE id = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบผู้ใช้ในระบบ' });
+    }
+
+    const user = users[0];
+    const [projectCountRes] = await pool.query('SELECT COUNT(*) as count FROM projects WHERE user_id = ?', [userId]);
+    user.projects_count = projectCountRes[0].count;
+
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Get Profile Me Error:', error);
+    res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์' });
+  }
+});
+
+/**
+ * @route GET /api/users/profile/:username
+ * @desc ดึงข้อมูลโปรไฟล์สาธารณะและรายการโปรเจกต์ตาม Username
+ */
+app.get('/api/users/profile/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    const [users] = await pool.query(
+      'SELECT id, username, fullname, role, bio, email, github, website, avatar, created_at FROM users WHERE username = ?',
+      [username.trim()]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบผู้ใช้นี้ในระบบ' });
+    }
+
+    const user = users[0];
+    const [projects] = await pool.query(
+      `SELECT p.*, u.fullname AS author_name, u.username AS author_username 
+       FROM projects p 
+       JOIN users u ON p.user_id = u.id 
+       WHERE p.user_id = ? 
+       ORDER BY p.created_at DESC`,
+      [user.id]
+    );
+
+    user.projects_count = projects.length;
+
+    res.json({
+      success: true,
+      data: {
+        profile: user,
+        projects: projects
+      }
+    });
+  } catch (error) {
+    console.error('Get Public Profile Error:', error);
+    res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์ผู้ใช้' });
+  }
+});
+
+/**
+ * @route PUT /api/users/profile/me
+ * @desc อัปเดตข้อมูลโปรไฟล์ส่วนตัว (รวมทั้งเปลี่ยนรูปอวาตาร์ หรือรหัสผ่าน)
+ */
+app.put('/api/users/profile/me', authenticateToken, upload.single('avatar_file'), async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { fullname, bio, email, github, website, avatar_url, new_password } = req.body;
+
+    const [existingUsers] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    if (existingUsers.length === 0) {
+      return res.status(404).json({ success: false, message: 'ไม่พบผู้ใช้ในระบบ' });
+    }
+
+    const currentUser = existingUsers[0];
+    let newAvatar = currentUser.avatar;
+
+    if (req.file) {
+      newAvatar = `/uploads/${req.file.filename}`;
+    } else if (avatar_url !== undefined && avatar_url.trim() !== '') {
+      newAvatar = avatar_url.trim();
+    }
+
+    let hashedPassword = currentUser.password;
+    if (new_password && new_password.trim().length >= 6) {
+      hashedPassword = await bcrypt.hash(new_password.trim(), 10);
+    }
+
+    const updatedFullname = fullname ? fullname.trim() : currentUser.fullname;
+    const updatedBio = bio !== undefined ? bio.trim() : currentUser.bio;
+    const updatedEmail = email !== undefined ? email.trim() : currentUser.email;
+    const updatedGithub = github !== undefined ? github.trim() : currentUser.github;
+    const updatedWebsite = website !== undefined ? website.trim() : currentUser.website;
+
+    await pool.query(
+      `UPDATE users 
+       SET fullname = ?, bio = ?, email = ?, github = ?, website = ?, avatar = ?, password = ? 
+       WHERE id = ?`,
+      [updatedFullname, updatedBio, updatedEmail, updatedGithub, updatedWebsite, newAvatar, hashedPassword, userId]
+    );
+
+    const updatedUserPayload = {
+      id: userId,
+      username: currentUser.username,
+      fullname: updatedFullname,
+      role: currentUser.role,
+      bio: updatedBio,
+      email: updatedEmail,
+      github: updatedGithub,
+      website: updatedWebsite,
+      avatar: newAvatar,
+      created_at: currentUser.created_at
+    };
+
+    const token = jwt.sign(
+      { id: updatedUserPayload.id, username: updatedUserPayload.username, fullname: updatedUserPayload.fullname, role: updatedUserPayload.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: 'อัปเดตข้อมูลโปรไฟล์เรียบร้อยแล้ว!',
+      token,
+      user: updatedUserPayload
+    });
+  } catch (error) {
+    console.error('Update Profile Error:', error);
+    res.status(500).json({ success: false, message: 'เกิดข้อผิดพลาดในการอัปเดตโปรไฟล์' });
   }
 });
 

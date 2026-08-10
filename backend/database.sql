@@ -19,6 +19,11 @@ CREATE TABLE `users` (
   `password` VARCHAR(255) NOT NULL,
   `fullname` VARCHAR(100) NOT NULL,
   `role` ENUM('admin', 'student') NOT NULL DEFAULT 'student',
+  `bio` TEXT DEFAULT NULL,
+  `email` VARCHAR(100) DEFAULT NULL,
+  `github` VARCHAR(255) DEFAULT NULL,
+  `website` VARCHAR(255) DEFAULT NULL,
+  `avatar` VARCHAR(255) DEFAULT NULL,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
