@@ -247,8 +247,8 @@ function renderProjectGrid(projects) {
     // แปลง Tag เป็น Badges
     const tagList = project.tags ? project.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
     const tagBadgesHtml = tagList.map(tag => `
-      <span class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-brand-500/10 text-brand-300 border border-brand-500/20">
-        #${tag}
+      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium bg-brand-500/10 text-brand-400 border border-brand-500/20">
+        #${escapeHtml(tag)}
       </span>
     `).join('');
 
@@ -258,34 +258,34 @@ function renderProjectGrid(projects) {
       : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80';
 
     const card = document.createElement('div');
-    card.className = 'glass-card rounded-2xl overflow-hidden flex flex-col transition duration-300 hover:-translate-y-1.5 group';
+    card.className = 'group glass-card glass-card-hover rounded-2xl overflow-hidden flex flex-col justify-between';
     card.innerHTML = `
       <!-- Cover Image -->
-      <div class="relative h-48 w-full overflow-hidden bg-slate-900">
+      <div class="relative h-48 w-full overflow-hidden bg-dark-950">
         <img 
           src="${coverUrl}" 
           alt="${escapeHtml(project.title)}" 
-          class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
           onerror="this.src='https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80'"
         >
-        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/20 to-transparent"></div>
         
         <!-- Permission Actions (Edit / Delete) -->
         ${isOwnerOrAdmin ? `
-          <div class="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition">
+          <div class="absolute top-3 right-3 flex items-center gap-1.5 backdrop-blur-md bg-dark-950/80 p-1 rounded-xl border border-white/10 shadow-lg">
             <button 
               onclick="openProjectModal('edit', ${project.id})" 
               title="แก้ไขโปรเจกต์"
-              class="w-8 h-8 rounded-lg bg-slate-900/90 text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center text-xs transition border border-amber-500/30 shadow-lg"
+              class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center text-xs transition"
             >
-              <i class="fa-solid fa-pen"></i>
+              <i class="fa-solid fa-pen text-[10px]"></i>
             </button>
             <button 
               onclick="deleteProject(${project.id})" 
               title="ลบโปรเจกต์"
-              class="w-8 h-8 rounded-lg bg-slate-900/90 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center text-xs transition border border-rose-500/30 shadow-lg"
+              class="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center text-xs transition"
             >
-              <i class="fa-solid fa-trash"></i>
+              <i class="fa-solid fa-trash text-[10px]"></i>
             </button>
           </div>
         ` : ''}
@@ -293,14 +293,14 @@ function renderProjectGrid(projects) {
 
       <!-- Card Body -->
       <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
-        <div class="space-y-2">
+        <div class="space-y-2.5">
           <!-- Tags -->
           <div class="flex flex-wrap gap-1.5">
-            ${tagBadgesHtml || '<span class="text-[10px] text-slate-500">General</span>'}
+            ${tagBadgesHtml || '<span class="text-[10px] font-mono text-slate-500">#General</span>'}
           </div>
 
           <!-- Title -->
-          <h3 class="font-heading text-lg font-bold text-white group-hover:text-brand-400 transition line-clamp-1">
+          <h3 class="font-heading text-base font-bold text-white group-hover:text-brand-400 transition-colors line-clamp-1 tracking-tight">
             ${escapeHtml(project.title)}
           </h3>
 
@@ -311,9 +311,9 @@ function renderProjectGrid(projects) {
         </div>
 
         <!-- Footer Meta & Detail Button -->
-        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+        <div class="pt-3.5 border-t border-slate-800/80 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <div class="w-6 h-6 rounded-md bg-slate-800 text-brand-400 flex items-center justify-center text-[10px] font-bold">
+            <div class="w-6 h-6 rounded-full bg-dark-800 border border-slate-700 text-brand-400 flex items-center justify-center text-[10px] font-bold font-mono">
               ${(project.author_name || 'U').charAt(0).toUpperCase()}
             </div>
             <span class="text-[11px] font-medium text-slate-300 truncate max-w-[110px]">
@@ -323,10 +323,10 @@ function renderProjectGrid(projects) {
 
           <button 
             onclick="openDetailModal(${project.id})" 
-            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-500/10 hover:bg-brand-500 text-brand-300 hover:text-white transition flex items-center gap-1.5"
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-800 hover:bg-brand-600 text-slate-200 hover:text-white border border-slate-700 hover:border-brand-500 transition-all duration-200 flex items-center gap-1.5"
           >
-            <span>ดูรายละเอียด</span>
-            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            <span>รายละเอียด</span>
+            <i class="fa-solid fa-arrow-right text-[10px] text-brand-400 group-hover:text-white transition"></i>
           </button>
         </div>
       </div>
