@@ -1,25 +1,35 @@
 <!DOCTYPE html>
-<html lang="th" class="dark">
+<html lang="th" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Department Project Showcase | ระบบจัดเก็บและแสดงผลงานโปรเจกต์ประจำแผนก</title>
-  <meta name="description" content="ระบบจัดเก็บและนำเสนอผลงานโปรเจกต์นวัตกรรม ซอฟต์แวร์ และงานวิจัยประจำภาควิชา">
-  
-  <!-- Tailwind CSS via CDN + Custom Config (Dark Mode Enabled: 'class') -->
+  <title>Department Project Showcase - ระบบจัดเก็บและแสดงผลงานโปรเจกต์ภาควิชา</title>
+  <meta name="description" content="แพลตฟอร์มคลังจัดเก็บและแสดงผลงานโปรเจกต์นิสิตนักศึกษา ภาควิชาเทคโนโลยีและคอมพิวเตอร์">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          },
           colors: {
             brand: {
               50: '#eef2ff',
               100: '#e0e7ff',
+              400: '#818cf8',
               500: '#6366f1',
               600: '#4f46e5',
-              700: '#4338ca',
+              900: '#312e81',
             }
           }
         }
@@ -27,254 +37,603 @@
     }
   </script>
 
-  <!-- FontAwesome 6.4.0 Icons CDN -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- Custom CSS Styles -->
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body class="bg-slate-950 text-slate-100 flex flex-col min-h-screen">
+  <!-- FontAwesome 6 CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Offline Banner -->
-  <div id="offline-banner" class="hidden bg-red-600 text-white text-center py-2 text-sm font-semibold z-50 shadow-md">
-    <i class="fa-solid fa-triangle-exclamation mr-2"></i> ⚠️ Unable to connect to the backend server. You are viewing offline mode or there's a connection issue.
+  <style>
+    /* Custom Scrollbar & Glassmorphic Utilities */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #020617;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+    .glass-nav {
+      background: rgba(2, 6, 23, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.65);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.25);
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- ============================================================ -->
+  <!-- 1. OFFLINE BANNER (แสดงเมื่อเชื่อมต่อ Backend ไม่ได้) -->
+  <!-- ============================================================ -->
+  <div id="offline-banner" class="hidden bg-rose-600/90 text-white text-center py-2.5 px-4 font-medium text-sm sticky top-0 z-50 shadow-lg flex items-center justify-center gap-2 backdrop-blur-md">
+    <i class="fa-solid fa-triangle-exclamation animate-bounce text-amber-300"></i>
+    <span>ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Backend (http://localhost:5000) ได้ในขณะนี้ — ระบบจะพยายามเชื่อมต่อใหม่อัตโนมัติ</span>
+    <button onclick="checkBackendHealth()" class="ml-3 px-2.5 py-1 bg-white/20 hover:bg-white/30 rounded text-xs transition">
+      <i class="fa-solid fa-rotate-right mr-1"></i>ลองใหม่
+    </button>
   </div>
 
-  <!-- Toast Notification Container สำหรับแจ้งเตือนผู้ใช้งาน -->
-  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-3"></div>
-
-  <!-- Sticky Glassmorphism Navbar (bg-slate-900/80 backdrop-blur-md) -->
-  <nav class="sticky top-0 z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        
-        <!-- Brand Logo & Title -->
-        <div class="flex items-center space-x-3 cursor-pointer" onclick="window.location.reload()">
-          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-brand-500/20">
-            <i class="fa-solid fa-code text-white text-xl"></i>
-          </div>
-          <div>
-            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              PROJECT SHOWCASE <span class="text-[10px] bg-brand-500/20 text-brand-300 border border-brand-500/30 px-2 py-0.5 rounded-full font-mono">v1.0</span>
-            </h1>
-            <p class="text-xs text-slate-400 font-light hidden sm:block">Department Project Repository</p>
-          </div>
-        </div>
-
-        <!-- Right Side Nav Actions (User Profile, Login, Logout, Admin Button) -->
-        <div id="nav-actions" class="flex items-center space-x-3 sm:space-x-4">
-          
-          <!-- User Status Badge -->
-          <div id="user-menu" class="hidden items-center gap-2 bg-slate-800/80 border border-slate-700/60 px-3 py-1.5 rounded-full text-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span id="user-name-display" class="text-slate-300 font-medium">Guest User</span>
-          </div>
-
-          <!-- Admin Drag & Drop Customizer Link (แสดงเฉพาะ Admin) -->
-          <a id="admin-panel-link" href="admin.html" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 font-semibold px-3.5 py-1.5 rounded-lg text-xs transition duration-200 flex items-center gap-1.5 shadow-md shadow-amber-500/20">
-            <i class="fa-solid fa-sliders"></i>
-            <span class="hidden md:inline">Admin</span>
-          </a>
-
-          <!-- ปุ่มสร้างโปรเจกต์ใหม่ -->
-          <button id="create-project-btn" class="hidden bg-brand-600 hover:bg-brand-500 text-white font-medium px-4 py-1.5 rounded-lg text-sm transition duration-200 flex items-center gap-2 shadow-lg shadow-brand-600/30">
-            <i class="fa-solid fa-plus"></i>
-            <span class="hidden sm:inline">สร้างโปรเจกต์</span>
-          </button>
-
-          <!-- ปุ่มเข้าสู่ระบบ / สมัครสมาชิก -->
-          <div id="auth-buttons" class="flex gap-2">
-            <button id="login-btn" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-brand-300 px-4 py-1.5 rounded-lg text-sm font-medium transition duration-200 flex items-center gap-2">
-              <i class="fa-solid fa-right-to-bracket"></i>
-              <span>เข้าสู่ระบบ</span>
-            </button>
-          </div>
-
-          <!-- ปุ่มออกจากระบบ -->
-          <button id="logout-btn" class="hidden bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 px-3.5 py-1.5 rounded-lg text-sm font-medium transition duration-200 flex items-center gap-1.5">
-            <i class="fa-solid fa-right-from-bracket"></i>
-            <span class="hidden sm:inline">ออกจากระบบ</span>
-          </button>
-
-        </div>
-
-      </div>
-    </div>
-  </nav>
-
-  <!-- MAIN CONTAINER FOR DYNAMIC SECTIONS -->
-  <main id="main-content" class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
-    
-    <!-- Hero Section -->
-    <div id="hero-section" class="text-center space-y-4 py-10">
-      <h2 class="text-4xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-cyan-300 tracking-tight">
-        Department Project Showcase
-      </h2>
-      <p class="text-slate-400 text-lg max-w-2xl mx-auto font-light">
-        คลังรวบรวมและนำเสนอผลงานโปรเจกต์นวัตกรรมประจำภาควิชา สำรวจผลงานจากนักศึกษาและบุคลากรของเรา
-      </p>
-    </div>
-
-    <!-- Search Bar & Tag Filter Section -->
-    <div id="filter-section" class="space-y-6">
-      <div class="relative max-w-3xl mx-auto">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-slate-500"></i>
-        <input type="text" id="search-input" placeholder="ค้นหาชื่อโปรเจกต์ หรือผู้จัดทำ..." class="w-full pl-12 pr-12 py-3 bg-slate-900/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition shadow-inner">
-        <button id="search-btn" class="absolute right-2 top-2 bg-brand-600 hover:bg-brand-500 text-white px-4 py-1 rounded-lg transition">ค้นหา</button>
-      </div>
-      <div id="tags-filter-container" class="flex flex-wrap justify-center gap-2 max-w-4xl mx-auto">
-        <!-- Tags will be injected here -->
-      </div>
-    </div>
-
-    <!-- Project Grid (3 Columns) -->
-    <div id="projects-section" class="space-y-6">
-      <h3 class="text-xl font-bold text-white border-l-4 border-brand-500 pl-3">ผลงานทั้งหมด</h3>
-      <div id="projects-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Project cards will be injected here -->
-      </div>
+  <!-- ============================================================ -->
+  <!-- 2. STICKY NAVBAR (GLASSMORPHISM EFFECT) -->
+  <!-- ============================================================ -->
+  <header class="sticky top-0 z-40 glass-nav border-b border-slate-800/80 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
       
-      <!-- Pagination -->
-      <div id="pagination-container" class="flex justify-center gap-2 mt-8">
-        <!-- Pagination buttons will be injected here -->
+      <!-- Brand Logo -->
+      <a href="#" class="flex items-center gap-3 group">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-brand-600 via-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25 group-hover:scale-105 transition-transform">
+          <i class="fa-solid fa-graduation-cap text-xl"></i>
+        </div>
+        <div>
+          <span class="font-heading font-bold text-xl tracking-tight text-white group-hover:text-brand-400 transition">Showcase</span>
+          <span class="block text-xs text-slate-400 font-medium">ภาควิชาวิศวกรรมและเทคโนโลยี</span>
+        </div>
+      </a>
+
+      <!-- Header Search Input (Quick Search) -->
+      <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+        <div class="relative w-full">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input 
+            type="text" 
+            id="nav-search-input" 
+            placeholder="ค้นหาโปรเจกต์, คำอธิบาย หรือแท็ก..." 
+            class="w-full pl-10 pr-4 py-2 bg-slate-900/90 border border-slate-800 rounded-xl text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition"
+          >
+        </div>
       </div>
+
+      <!-- Auth Actions & User Profile -->
+      <div class="flex items-center gap-3">
+        <!-- Unauthenticated Buttons -->
+        <div id="auth-logged-out" class="flex items-center gap-2">
+          <button 
+            onclick="openAuthModal('login')" 
+            class="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-xl transition"
+          >
+            <i class="fa-solid fa-right-to-bracket mr-1.5 text-brand-400"></i>เข้าสู่ระบบ
+          </button>
+          <button 
+            onclick="openAuthModal('register')" 
+            class="px-4 py-2 text-sm font-medium bg-brand-600 hover:bg-brand-500 text-white rounded-xl shadow-lg shadow-brand-600/30 transition transform hover:-translate-y-0.5"
+          >
+            <i class="fa-solid fa-user-plus mr-1.5"></i>สมัครสมาชิก
+          </button>
+        </div>
+
+        <!-- Authenticated Dropdown & Add Button -->
+        <div id="auth-logged-in" class="hidden flex items-center gap-3">
+          <button 
+            onclick="openProjectModal('add')" 
+            class="px-4 py-2 text-sm font-semibold bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white rounded-xl shadow-lg shadow-brand-600/30 transition transform hover:-translate-y-0.5 flex items-center gap-2"
+          >
+            <i class="fa-solid fa-plus text-xs"></i>
+            <span>เพิ่มผลงานใหม่</span>
+          </button>
+
+          <div class="relative group">
+            <button class="flex items-center gap-2 py-1.5 px-3 bg-slate-900 border border-slate-800 rounded-xl hover:border-slate-700 transition">
+              <div class="w-8 h-8 rounded-lg bg-indigo-900/60 border border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-sm" id="user-avatar">
+                U
+              </div>
+              <div class="text-left hidden sm:block">
+                <span class="block text-xs font-semibold text-slate-200" id="user-fullname">User</span>
+                <span class="block text-[10px] text-brand-400 font-mono uppercase" id="user-role-badge">Student</span>
+              </div>
+              <i class="fa-solid fa-chevron-down text-xs text-slate-400 ml-1"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div class="absolute right-0 mt-2 w-48 bg-slate-900 border border-slate-800 rounded-xl shadow-xl py-2 hidden group-hover:block transition-all z-50">
+              <div class="px-4 py-2 border-b border-slate-800">
+                <p class="text-xs text-slate-400">เข้าใช้ด้วยบัญชี:</p>
+                <p class="text-sm font-medium text-slate-200 truncate" id="dropdown-username">@username</p>
+              </div>
+              <button 
+                onclick="filterMyProjects()" 
+                class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-800 flex items-center gap-2"
+              >
+                <i class="fa-solid fa-folder-open text-brand-400"></i>ผลงานของฉัน
+              </button>
+              <button 
+                onclick="logout()" 
+                class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-slate-800 flex items-center gap-2"
+              >
+                <i class="fa-solid fa-right-from-bracket"></i>ออกจากระบบ
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- MAIN CONTENT AREA -->
+  <!-- ============================================================ -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+    <!-- HERO BANNER & STATS CARDS -->
+    <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-950 border border-slate-800/80 p-8 sm:p-12 shadow-2xl">
+      <!-- Background Ambient Glow -->
+      <div class="absolute -top-24 -right-24 w-96 h-96 bg-brand-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        
+        <!-- Hero Text -->
+        <div class="lg:col-span-7 space-y-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-300 text-xs font-semibold uppercase tracking-wider">
+            <i class="fa-solid fa-rocket"></i> Deparment Showcase 2026
+          </div>
+          <h1 class="font-heading text-3xl sm:text-5xl font-extrabold text-white leading-tight">
+            คลังจัดเก็บ & แสดง <span class="gradient-text">ผลงานโปรเจกต์</span> ภาควิชา
+          </h1>
+          <p class="text-slate-400 text-sm sm:text-base leading-relaxed">
+            แหล่งรวบรวมโครงงานวิชาการ ปริญญานิพนธ์ และผลงานนวัตกรรมของนิสิตนักศึกษา พร้อมระบบสืบค้น กรองหมวดหมู่แท็ก และการจัดการสิทธิ์การแสดงผลงานอย่างสมบูรณ์แบบ
+          </p>
+        </div>
+
+        <!-- Overview Stats Cards -->
+        <div class="lg:col-span-5 grid grid-cols-3 gap-3 sm:gap-4">
+          <div class="glass-card p-4 rounded-2xl text-center space-y-1">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center mb-2">
+              <i class="fa-solid fa-diagram-project text-lg"></i>
+            </div>
+            <div class="font-heading text-2xl font-bold text-white" id="stat-total-projects">0</div>
+            <div class="text-[11px] text-slate-400 font-medium">โปรเจกต์ทั้งหมด</div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl text-center space-y-1">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center mb-2">
+              <i class="fa-solid fa-tags text-lg"></i>
+            </div>
+            <div class="font-heading text-2xl font-bold text-white" id="stat-total-tags">0</div>
+            <div class="text-[11px] text-slate-400 font-medium">หมวดหมู่แท็ก</div>
+          </div>
+
+          <div class="glass-card p-4 rounded-2xl text-center space-y-1">
+            <div class="w-10 h-10 mx-auto rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2">
+              <i class="fa-solid fa-users text-lg"></i>
+            </div>
+            <div class="font-heading text-2xl font-bold text-white" id="stat-total-authors">0</div>
+            <div class="text-[11px] text-slate-400 font-medium">ผู้สร้างสรรค์</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SEARCH & FILTER BAR -->
+    <section class="space-y-4">
+      <div class="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+        
+        <!-- Main Search Bar -->
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="ค้นหาชื่อโปรเจกต์, คำอธิบาย หรือแท็ก..." 
+            class="w-full pl-11 pr-10 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 text-sm shadow-inner transition"
+          >
+          <button 
+            id="clear-search-btn" 
+            onclick="clearSearch()" 
+            class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-sm"
+          >
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Tag Filter Pills -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-none" id="tag-filter-container">
+          <button onclick="selectTag('All')" class="tag-filter-btn active-tag px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-brand-600 text-white shadow-lg shadow-brand-600/30">
+            ทั้งหมด (All)
+          </button>
+          <button onclick="selectTag('Web')" class="tag-filter-btn px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200">
+            #Web
+          </button>
+          <button onclick="selectTag('IoT')" class="tag-filter-btn px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200">
+            #IoT
+          </button>
+          <button onclick="selectTag('AI')" class="tag-filter-btn px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200">
+            #AI
+          </button>
+          <button onclick="selectTag('Mobile')" class="tag-filter-btn px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200">
+            #Mobile
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- PROJECT GRID SYSTEM -->
+    <section>
+      <!-- Active Filter Status -->
+      <div id="filter-status" class="hidden mb-4 flex items-center justify-between text-sm text-slate-400">
+        <div>
+          แสดงผลการค้นหา: <span id="filter-status-text" class="text-white font-semibold"></span>
+        </div>
+        <button onclick="resetFilters()" class="text-xs text-brand-400 hover:underline">
+          ล้างตัวกรองทั้งหมด
+        </button>
+      </div>
+
+      <!-- Project Cards Grid -->
+      <div id="project-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Skeleton Loading Cards -->
+        <div class="glass-card rounded-2xl overflow-hidden animate-pulse h-96 flex flex-col">
+          <div class="h-48 bg-slate-800"></div>
+          <div class="p-5 flex-1 space-y-3">
+            <div class="h-4 bg-slate-800 rounded w-1/4"></div>
+            <div class="h-6 bg-slate-800 rounded w-3/4"></div>
+            <div class="h-4 bg-slate-800 rounded w-full"></div>
+            <div class="h-4 bg-slate-800 rounded w-2/3"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State Illustration -->
+      <div id="empty-state" class="hidden text-center py-16 space-y-4 bg-slate-900/40 border border-dashed border-slate-800 rounded-3xl">
+        <div class="w-16 h-16 mx-auto rounded-full bg-slate-800 text-slate-500 flex items-center justify-center text-2xl">
+          <i class="fa-solid fa-folder-open"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-slate-300">ไม่พบข้อมูลโปรเจกต์ที่ตรงกับเงื่อนไข</h3>
+        <p class="text-sm text-slate-500 max-w-md mx-auto">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่แท็กอื่นเพื่อค้นหาผลงานโปรเจกต์ในระบบ</p>
+        <button onclick="resetFilters()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition">
+          ดูโปรเจกต์ทั้งหมด
+        </button>
+      </div>
+    </section>
 
   </main>
 
-  <!-- Footer -->
-  <footer class="border-t border-slate-800 bg-slate-950 py-8 text-center text-xs text-slate-500 mt-auto">
+  <!-- ============================================================ -->
+  <!-- FOOTER -->
+  <!-- ============================================================ -->
+  <footer class="border-t border-slate-900 bg-slate-950 py-8 text-center text-xs text-slate-500">
     <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center space-x-2">
-        <i class="fa-solid fa-graduation-cap text-brand-400 text-base"></i>
-        <span class="font-medium text-slate-400">Department Project Showcase System</span>
-      </div>
-      <p>© 2026 Department of Computer Engineering & Science. All Rights Reserved.</p>
+      <p>© 2026 Department Project Showcase. All rights reserved.</p>
+      <p class="flex items-center gap-2">
+        <span>พัฒนาด้วย Node.js, Express, MariaDB/MySQL & Tailwind CSS</span>
+      </p>
     </div>
   </footer>
 
-  <!-- ==================== MODALS COMPONENT ==================== -->
-
-  <!-- 1. AUTH MODAL (LOGIN / REGISTER TABS) -->
-  <div id="login-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" id="close-login-modal-bg" onclick="document.getElementById('login-modal').classList.add('hidden')"></div>
-    
-    <div class="relative bg-slate-900 rounded-2xl w-full max-w-md p-6 sm:p-8 shadow-2xl border border-slate-700/60 z-10">
-      <button id="close-login-modal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
-        <i class="fa-solid fa-xmark"></i>
+  <!-- ============================================================ -->
+  <!-- MODAL 1: AUTHENTICATION MODAL (LOGIN / REGISTER) -->
+  <!-- ============================================================ -->
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-opacity">
+    <div class="glass-card w-full max-w-md rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-2xl relative">
+      
+      <!-- Close Button -->
+      <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
-      <div class="flex border-b border-slate-700 mb-6">
-        <button id="show-login" class="flex-1 py-2 text-center text-sm font-semibold border-b-2 border-brand-500 text-brand-400 transition">
-          <i class="fa-solid fa-right-to-bracket mr-2"></i>เข้าสู่ระบบ
+      <!-- Auth Tabs -->
+      <div class="flex border-b border-slate-800 mb-6">
+        <button 
+          id="tab-login" 
+          onclick="switchAuthTab('login')" 
+          class="flex-1 py-3 text-sm font-semibold text-brand-400 border-b-2 border-brand-500 transition"
+        >
+          เข้าสู่ระบบ
         </button>
-        <button id="show-register" class="flex-1 py-2 text-center text-sm font-semibold text-slate-400 hover:text-slate-200 border-b-2 border-transparent transition">
-          <i class="fa-solid fa-user-plus mr-2"></i>ลงทะเบียนสมาชิก
+        <button 
+          id="tab-register" 
+          onclick="switchAuthTab('register')" 
+          class="flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition"
+        >
+          สมัครสมาชิก
         </button>
       </div>
 
       <!-- LOGIN FORM -->
-      <div id="login-form-container">
-        <form id="login-form" class="space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">อีเมล (Email)</label>
-            <div class="relative">
-              <i class="fa-solid fa-envelope absolute left-3 top-3 text-slate-500 text-xs"></i>
-              <input type="email" id="login-email" required placeholder="admin@example.com" class="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500 transition">
-            </div>
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">รหัสผ่าน</label>
-            <div class="relative">
-              <i class="fa-solid fa-lock absolute left-3 top-3 text-slate-500 text-xs"></i>
-              <input type="password" id="login-password" required placeholder="••••••••" class="w-full pl-9 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500 transition">
-            </div>
-          </div>
-          <div class="pt-2">
-            <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg flex items-center justify-center gap-2">
-              เข้าสู่ระบบ
-            </button>
-          </div>
-        </form>
-      </div>
+      <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อผู้ใช้ (Username)</label>
+          <input 
+            type="text" 
+            id="login-username" 
+            required 
+            placeholder="ตัวอย่าง: admin หรือ student1"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+          >
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">รหัสผ่าน (Password)</label>
+          <input 
+            type="password" 
+            id="login-password" 
+            required 
+            placeholder="••••••••"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+          >
+        </div>
+        <button 
+          type="submit" 
+          class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-600/30 transition mt-2"
+        >
+          เข้าสู่ระบบ
+        </button>
+
+        <div class="mt-4 p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-1">
+          <p class="font-semibold text-slate-300">🔑 บัญชีทดสอบในระบบ (Seed Users):</p>
+          <p>• Admin: <span class="font-mono text-brand-300">admin</span> / <span class="font-mono text-brand-300">password123</span></p>
+          <p>• Student: <span class="font-mono text-brand-300">student1</span> / <span class="font-mono text-brand-300">password123</span></p>
+        </div>
+      </form>
 
       <!-- REGISTER FORM -->
-      <div id="register-form-container" class="hidden">
-        <form id="register-form" class="space-y-4">
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อ-นามสกุล</label>
-            <input type="text" id="reg-name" required placeholder="สมชาย ใจดี" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">อีเมล (Email)</label>
-            <input type="email" id="reg-email" required placeholder="somchai@department.ac.th" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
-          </div>
-          <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">รหัสผ่าน</label>
-            <input type="password" id="reg-password" required placeholder="••••••••" minlength="6" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
-          </div>
-          <div class="pt-2">
-            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-sm transition shadow-lg flex items-center justify-center gap-2">
-              สร้างบัญชีสมาชิก
-            </button>
-          </div>
-        </form>
-      </div>
+      <form id="register-form" onsubmit="handleRegister(event)" class="hidden space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อผู้ใช้ (Username)</label>
+          <input 
+            type="text" 
+            id="register-username" 
+            required 
+            placeholder="ตัวอย่าง: student_new"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+          >
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อ-นามสกุล (Full Name)</label>
+          <input 
+            type="text" 
+            id="register-fullname" 
+            required 
+            placeholder="ตัวอย่าง: นายสมศักดิ์ รักเรียน"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+          >
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">รหัสผ่าน (Password)</label>
+          <input 
+            type="password" 
+            id="register-password" 
+            required 
+            placeholder="กำหนดรหัสผ่านอย่างน้อย 6 ตัวอักษร"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+          >
+        </div>
+        <button 
+          type="submit" 
+          class="w-full py-3 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm font-semibold shadow-lg shadow-brand-600/30 transition mt-2"
+        >
+          ยืนยันการสมัครสมาชิก
+        </button>
+      </form>
+
     </div>
   </div>
 
-  <!-- 2. CREATE / EDIT PROJECT FORM MODAL -->
-  <div id="project-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
-    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="document.getElementById('project-modal').classList.add('hidden')"></div>
-    
-    <div class="relative bg-slate-900 rounded-2xl w-full max-w-2xl p-6 sm:p-8 shadow-2xl border border-slate-700/60 z-10 max-h-[90vh] overflow-y-auto">
-      <button id="close-project-modal" class="absolute top-4 right-4 text-slate-400 hover:text-white text-xl">
-        <i class="fa-solid fa-xmark"></i>
+  <!-- ============================================================ -->
+  <!-- MODAL 2: PROJECT FORM MODAL (ADD / EDIT PROJECT) -->
+  <!-- ============================================================ -->
+  <div id="project-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-opacity overflow-y-auto">
+    <div class="glass-card w-full max-w-2xl rounded-3xl border border-slate-800 p-6 sm:p-8 shadow-2xl relative my-8">
+      
+      <!-- Close Button -->
+      <button onclick="closeProjectModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+        <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
-      <h2 id="modal-title" class="text-xl font-bold text-white mb-6">สร้างโปรเจกต์ใหม่</h2>
+      <h2 class="font-heading text-xl font-bold text-white mb-6 flex items-center gap-2" id="project-modal-title">
+        <i class="fa-solid fa-file-pen text-brand-400"></i>
+        <span>เพิ่มผลงานโปรเจกต์ใหม่</span>
+      </h2>
 
-      <form id="project-form" class="space-y-4">
-        <input type="hidden" id="project-id" name="id">
+      <form id="project-form" onsubmit="handleProjectSubmit(event)" class="space-y-4">
+        <input type="hidden" id="project-id">
+
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">ชื่อโปรเจกต์ *</label>
-          <input type="text" id="title" name="title" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อโปรเจกต์ (Project Title) <span class="text-rose-400">*</span></label>
+          <input 
+            type="text" 
+            id="project-title" 
+            required 
+            placeholder="ตัวอย่าง: ระบบบริหารจัดการคลังสินค้าด้วย IoT"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+          >
         </div>
+
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">คำอธิบายสั้น (Short Description) *</label>
-          <input type="text" id="short_description" name="short_description" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">คำอธิบายย่อ (Short Summary) <span class="text-rose-400">*</span></label>
+          <textarea 
+            id="project-short-desc" 
+            required 
+            rows="2" 
+            placeholder="สรุปย่อไม่เกิน 2-3 ประโยคเพื่อแสดงในการ์ด..."
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+          ></textarea>
         </div>
+
         <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">รายละเอียดฉบับเต็ม *</label>
-          <textarea id="full_description" name="full_description" rows="4" required class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500"></textarea>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">รายละเอียดฉบับเต็ม (Full Description) <span class="text-rose-400">*</span></label>
+          <textarea 
+            id="project-full-desc" 
+            required 
+            rows="5" 
+            placeholder="รายละเอียดเชิงลึก เทคโนโลยีที่ใช้ ฟีเจอร์หลัก ผลการทดลอง..."
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+          ></textarea>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">อัปโหลดรูปภาพปก</label>
-          <input type="file" id="cover_image" name="cover_image" accept="image/*" class="w-full px-2 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs text-slate-300">
-        </div>
-        <div class="grid grid-cols-2 gap-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">ลิงก์ Demo</label>
-            <input type="url" id="demo_url" name="demo_url" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL รูปภาพปก (Cover Image Link)</label>
+            <input 
+              type="url" 
+              id="project-cover-url" 
+              placeholder="https://images.unsplash.com/..."
+              class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+            >
           </div>
+
           <div>
-            <label class="block text-xs font-medium text-slate-300 mb-1">ลิงก์ GitHub</label>
-            <input type="url" id="github_url" name="github_url" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">หรืออัปโหลดไฟล์รูปภาพปก</label>
+            <input 
+              type="file" 
+              id="project-cover-file" 
+              accept="image/*"
+              class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700"
+            >
           </div>
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-300 mb-1">แท็ก (คั่นด้วย comma)</label>
-          <input type="text" id="tags" name="tags" placeholder="IoT, AI, Node.js" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-white focus:outline-none focus:border-brand-500">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">ลิงก์สาธิต (Demo URL)</label>
+            <input 
+              type="url" 
+              id="project-demo-url" 
+              placeholder="https://my-demo-app.com"
+              class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+            >
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">GitHub Repository URL</label>
+            <input 
+              type="url" 
+              id="project-github-url" 
+              placeholder="https://github.com/user/project"
+              class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+            >
+          </div>
         </div>
-        <div class="pt-4 flex justify-end">
-          <button type="submit" class="px-5 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-lg text-sm font-medium transition">
-            บันทึก
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1.5">แท็กหมวดหมู่ (Tags - คั่นด้วยเครื่องหมายจุลภาค ,)</label>
+          <input 
+            type="text" 
+            id="project-tags" 
+            placeholder="ตัวอย่าง: Web, IoT, AI, Node.js"
+            class="w-full px-4 py-2.5 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-100 focus:outline-none focus:border-brand-500"
+          >
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
+          <button 
+            type="button" 
+            onclick="closeProjectModal()" 
+            class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition"
+          >
+            ยกเลิก
+          </button>
+          <button 
+            type="submit" 
+            class="px-6 py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/30 transition"
+          >
+            บันทึกผลงาน
           </button>
         </div>
       </form>
+
     </div>
   </div>
 
+  <!-- ============================================================ -->
+  <!-- MODAL 3: PROJECT DETAIL MODAL (FULL VIEW) -->
+  <!-- ============================================================ -->
+  <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md transition-opacity overflow-y-auto">
+    <div class="glass-card w-full max-w-3xl rounded-3xl border border-slate-800 overflow-hidden shadow-2xl relative my-8">
+      
+      <!-- Cover Image Header -->
+      <div class="relative h-64 sm:h-80 w-full overflow-hidden bg-slate-900">
+        <img id="detail-cover" src="" alt="Project Cover" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+        
+        <!-- Close Button -->
+        <button onclick="closeDetailModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-950/80 text-white hover:bg-slate-900 flex items-center justify-center transition border border-slate-700">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="absolute bottom-6 left-6 right-6 space-y-2">
+          <div id="detail-tags" class="flex flex-wrap gap-2"></div>
+          <h2 id="detail-title" class="font-heading text-2xl sm:text-3xl font-extrabold text-white leading-tight"></h2>
+        </div>
+      </div>
+
+      <!-- Detail Body -->
+      <div class="p-6 sm:p-8 space-y-6">
+        <!-- Author Info & Meta -->
+        <div class="flex items-center justify-between p-4 bg-slate-900/80 border border-slate-800 rounded-2xl">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-brand-600/30 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-sm">
+              <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div>
+              <p class="text-xs text-slate-400">เจ้าของผลงาน:</p>
+              <p class="text-sm font-semibold text-slate-200" id="detail-author"></p>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-xs text-slate-400">วันที่เผยแพร่:</p>
+            <p class="text-xs font-mono text-slate-300" id="detail-date"></p>
+          </div>
+        </div>
+
+        <!-- Full Description -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-brand-400 uppercase tracking-wider">รายละเอียดโปรเจกต์</h4>
+          <p id="detail-full-desc" class="text-slate-300 text-sm leading-relaxed whitespace-pre-line"></p>
+        </div>
+
+        <!-- Action Links (Demo / GitHub) -->
+        <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-800" id="detail-actions">
+          <!-- Inject Demo and GitHub buttons via JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <!-- ============================================================ -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+  <!-- App Main JavaScript Logic -->
   <script src="js/app.js"></script>
 </body>
 </html>

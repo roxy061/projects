@@ -1,550 +1,729 @@
-// frontend/js/app.js
+/**
+ * ============================================================
+ * Department Project Showcase - Frontend Dynamic Logic (SPA)
+ * ============================================================
+ * Tech: Vanilla JavaScript (ES6+), Fetch API, LocalStorage
+ */
 
-// --- 1. Dynamic API Base URL Setup ---
+// ------------------------------------------------------------
+// 1. GLOBAL CONFIGURATION & STATE MANAGEMENT
+// ------------------------------------------------------------
+// Dynamic API Base URL Setup (ถ้าเปิดผ่าน Express Port 5000 ใช้ /api ถ้าเป็น Live Server ใช้ http://localhost:5000/api)
 const API_BASE_URL = window.location.origin.includes('5000') 
-  ? `${window.location.origin}/api` 
+  ? '/api' 
   : 'http://localhost:5000/api';
 
-// --- 2. Global State ---
-let state = {
-  currentUser: null,
-  jwtToken: localStorage.getItem('token') || null,
-  projects: [],
-  tags: [],
-  layout: [],
-  pagination: {
-    page: 1,
-    limit: 9,
-    total: 0,
-    totalPages: 0
-  },
-  filters: {
-    search: '',
-    tag: ''
-  }
-};
+let currentUser = null;
+let authToken = null;
+let allProjects = [];
+let activeTag = 'All';
+let searchQuery = '';
+let myProjectsOnly = false;
+let healthCheckInterval = null;
 
-// --- 3. Utility Functions ---
-async function fetchAPI(endpoint, options = {}) {
-  const url = `${API_BASE_URL}${endpoint}`;
-  const headers = { ...options.headers };
-  
-  if (!(options.body instanceof FormData)) {
-    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
-  }
+// ------------------------------------------------------------
+// 2. INITIALIZATION ON DOM READY
+// ------------------------------------------------------------
+document.addEventListener('DOMContentLoaded', () => {
+  initAuth();
+  checkBackendHealth();
+  fetchProjects();
 
-  if (state.jwtToken) {
-    headers['Authorization'] = `Bearer ${state.jwtToken}`;
-  }
+  // ตั้งค่า Event Listeners สำหรับการค้นหาเรียลไทม์
+  setupSearchListeners();
 
-  try {
-    const response = await fetch(url, { ...options, headers });
-    
-    // Handle unauthorized
-    if (response.status === 401) {
-      logout(false);
-      throw new Error('Unauthorized or token expired.');
-    }
-    
-    return response;
-  } catch (error) {
-    console.error(`API Error (${endpoint}):`, error);
-    throw error;
-  }
-}
+  // เริ่มต้น polling ตรวจสอบสถานะการเชื่อมต่อเซิร์ฟเวอร์ทุก 15 วินาที
+  healthCheckInterval = setInterval(checkBackendHealth, 15000);
+});
 
-function showToast(message, type = 'success') {
-  // Simple toast implementation (can be improved)
-  alert(`${type.toUpperCase()}: ${message}`);
-}
+// ------------------------------------------------------------
+// 3. AUTHENTICATION & LOCALSTORAGE ENGINE
+// ------------------------------------------------------------
+function initAuth() {
+  const savedToken = localStorage.getItem('showcase_token');
+  const savedUser = localStorage.getItem('showcase_user');
 
-// --- 4. Authentication ---
-async function checkAuth() {
-  if (!state.jwtToken) return false;
-  
-  try {
-    const res = await fetchAPI('/auth/me');
-    if (res.ok) {
-      const data = await res.json();
-      state.currentUser = data.user;
+  if (savedToken && savedUser) {
+    try {
+      authToken = savedToken;
+      currentUser = JSON.parse(savedUser);
       updateAuthUI();
-      return true;
-    } else {
-      logout(false);
-      return false;
+    } catch (e) {
+      console.error('Failed to parse saved user:', e);
+      logout();
     }
-  } catch (e) {
-    return false;
+  } else {
+    updateAuthUI();
   }
 }
 
 function updateAuthUI() {
-  const authContainer = document.getElementById('auth-buttons');
-  const userMenu = document.getElementById('user-menu');
-  const userNameDisplay = document.getElementById('user-name-display');
-  const createProjectBtn = document.getElementById('create-project-btn');
-  const adminPanelLink = document.getElementById('admin-panel-link');
-  
-  if (state.currentUser) {
-    if (authContainer) authContainer.classList.add('hidden');
-    if (userMenu) userMenu.classList.remove('hidden');
-    if (userNameDisplay) userNameDisplay.textContent = state.currentUser.name;
-    if (createProjectBtn) createProjectBtn.classList.remove('hidden');
-    
-    if (state.currentUser.role === 'admin') {
-      if (adminPanelLink) adminPanelLink.classList.remove('hidden');
+  const loggedOutEl = document.getElementById('auth-logged-out');
+  const loggedInEl = document.getElementById('auth-logged-in');
+
+  if (currentUser && authToken) {
+    loggedOutEl.classList.add('hidden');
+    loggedInEl.classList.remove('hidden');
+
+    document.getElementById('user-fullname').textContent = currentUser.fullname || currentUser.username;
+    document.getElementById('dropdown-username').textContent = `@${currentUser.username}`;
+    document.getElementById('user-avatar').textContent = (currentUser.fullname || currentUser.username).charAt(0).toUpperCase();
+
+    const roleBadge = document.getElementById('user-role-badge');
+    roleBadge.textContent = currentUser.role;
+    if (currentUser.role === 'admin') {
+      roleBadge.className = 'block text-[10px] text-purple-400 font-mono font-bold uppercase tracking-wider';
     } else {
-      if (adminPanelLink) adminPanelLink.classList.add('hidden');
+      roleBadge.className = 'block text-[10px] text-brand-400 font-mono uppercase';
     }
   } else {
-    if (authContainer) authContainer.classList.remove('hidden');
-    if (userMenu) userMenu.classList.add('hidden');
-    if (createProjectBtn) createProjectBtn.classList.add('hidden');
-    if (adminPanelLink) adminPanelLink.classList.add('hidden');
+    loggedOutEl.classList.remove('hidden');
+    loggedInEl.classList.add('hidden');
   }
 }
 
-function logout(showAlert = true) {
-  localStorage.removeItem('token');
-  state.jwtToken = null;
-  state.currentUser = null;
-  updateAuthUI();
-  fetchProjects(); // Refresh to hide edit/delete buttons
-  if (showAlert) showToast('Logged out successfully', 'success');
-}
+async function handleLogin(event) {
+  event.preventDefault();
+  const usernameInput = document.getElementById('login-username').value.trim();
+  const passwordInput = document.getElementById('login-password').value;
 
-// --- 5. Data Fetching ---
-async function fetchLayout() {
-  try {
-    const res = await fetchAPI('/layout');
-    if (res.ok) {
-      const data = await res.json();
-      state.layout = data.layout;
-      renderLayout();
-    }
-  } catch (e) {
-    console.error('Failed to fetch layout');
-  }
-}
-
-async function fetchTags() {
-  try {
-    const res = await fetchAPI('/projects/tags');
-    if (res.ok) {
-      state.tags = await res.json();
-      renderTagsFilter();
-    }
-  } catch (e) {
-    console.error('Failed to fetch tags');
-  }
-}
-
-async function fetchProjects(page = 1) {
-  try {
-    state.pagination.page = page;
-    let url = `/projects?page=${page}&limit=${state.pagination.limit}`;
-    if (state.filters.search) url += `&search=${encodeURIComponent(state.filters.search)}`;
-    if (state.filters.tag) url += `&tag=${encodeURIComponent(state.filters.tag)}`;
-    
-    const res = await fetchAPI(url);
-    if (res.ok) {
-      const data = await res.json();
-      state.projects = data.projects;
-      state.pagination = data.pagination;
-      renderProjects();
-      renderPagination();
-    }
-  } catch (e) {
-    console.error('Failed to fetch projects');
-  }
-}
-
-// --- 6. UI Rendering ---
-function renderLayout() {
-  const mainContent = document.getElementById('main-content');
-  if (!mainContent) return;
-  
-  // Reorder sections based on layout
-  state.layout.forEach(item => {
-    if (item.visible) {
-      const sectionEl = document.getElementById(`${item.id}-section`);
-      if (sectionEl) {
-        sectionEl.style.display = 'block';
-        mainContent.appendChild(sectionEl); // Moves to end, effectively ordering
-      }
-    } else {
-      const sectionEl = document.getElementById(`${item.id}-section`);
-      if (sectionEl) sectionEl.style.display = 'none';
-    }
-  });
-}
-
-function renderTagsFilter() {
-  const container = document.getElementById('tags-filter-container');
-  if (!container) return;
-  
-  container.innerHTML = `
-    <button class="tag-pill active px-4 py-2 rounded-full border border-slate-700 bg-slate-800 text-sm font-medium hover:bg-slate-700 transition" data-tag="">All</button>
-  `;
-  
-  state.tags.forEach(tag => {
-    const btn = document.createElement('button');
-    btn.className = `tag-pill px-4 py-2 rounded-full border border-slate-700 bg-slate-800 text-sm font-medium hover:bg-slate-700 transition`;
-    btn.dataset.tag = tag.name;
-    btn.textContent = tag.name;
-    if (state.filters.tag === tag.name) {
-      btn.classList.add('bg-brand-600', 'border-brand-500', 'text-white');
-      btn.classList.remove('bg-slate-800', 'border-slate-700');
-    }
-    container.appendChild(btn);
-  });
-}
-
-function renderProjects() {
-  const grid = document.getElementById('projects-container');
-  if (!grid) return;
-  
-  grid.innerHTML = '';
-  
-  if (state.projects.length === 0) {
-    grid.innerHTML = `<div class="col-span-full text-center text-slate-400 py-10">No projects found.</div>`;
+  if (!usernameInput || !passwordInput) {
+    showToast('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน', 'error');
     return;
   }
-  
-  state.projects.forEach(project => {
-    const card = document.createElement('div');
-    card.className = 'project-card bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-brand-500 transition duration-300 flex flex-col group';
-    
-    // Auth Check for Edit/Delete
-    const isOwner = state.currentUser && state.currentUser.id === project.user_id;
-    const isAdmin = state.currentUser && state.currentUser.role === 'admin';
-    const canEdit = isOwner || isAdmin;
-    
-    let actionButtons = '';
-    if (canEdit) {
-      actionButtons = `
-        <div class="absolute top-3 right-3 flex space-x-2 opacity-0 group-hover:opacity-100 transition">
-          <button class="edit-project-btn bg-blue-600/80 hover:bg-blue-600 text-white p-2 rounded-lg backdrop-blur-sm" data-id="${project.id}" title="Edit">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button class="delete-project-btn bg-red-600/80 hover:bg-red-600 text-white p-2 rounded-lg backdrop-blur-sm" data-id="${project.id}" title="Delete">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-      `;
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: usernameInput, password: passwordInput })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      authToken = result.token;
+      currentUser = result.user;
+      localStorage.setItem('showcase_token', authToken);
+      localStorage.setItem('showcase_user', JSON.stringify(currentUser));
+
+      updateAuthUI();
+      closeAuthModal();
+      showToast(`ยินดีต้อนรับคุณ ${currentUser.fullname}!`, 'success');
+      fetchProjects();
+    } else {
+      showToast(result.message || 'เข้าสู่ระบบไม่สำเร็จ', 'error');
     }
+  } catch (error) {
+    console.error('Login error:', error);
+    showToast('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์เพื่อเข้าสู่ระบบได้', 'error');
+  }
+}
 
-    const coverUrl = project.cover_image ? `${API_BASE_URL.replace('/api', '')}${project.cover_image}` : 'https://via.placeholder.com/600x400?text=No+Image';
+async function handleRegister(event) {
+  event.preventDefault();
+  const username = document.getElementById('register-username').value.trim();
+  const fullname = document.getElementById('register-fullname').value.trim();
+  const password = document.getElementById('register-password').value;
 
+  if (!username || !fullname || !password) {
+    showToast('กรุณากรอกข้อมูลให้ครบทุกช่อง', 'error');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, fullname, password })
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      authToken = result.token;
+      currentUser = result.user;
+      localStorage.setItem('showcase_token', authToken);
+      localStorage.setItem('showcase_user', JSON.stringify(currentUser));
+
+      updateAuthUI();
+      closeAuthModal();
+      showToast('สมัครสมาชิกสำเร็จและเข้าสู่ระบบเรียบร้อย!', 'success');
+      fetchProjects();
+    } else {
+      showToast(result.message || 'สมัครสมาชิกไม่สำเร็จ', 'error');
+    }
+  } catch (error) {
+    console.error('Register error:', error);
+    showToast('เกิดข้อผิดพลาดในการสมัครสมาชิก', 'error');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  authToken = null;
+  localStorage.removeItem('showcase_token');
+  localStorage.removeItem('showcase_user');
+  myProjectsOnly = false;
+
+  updateAuthUI();
+  showToast('ออกจากระบบเรียบร้อยแล้ว', 'info');
+  fetchProjects();
+}
+
+// ------------------------------------------------------------
+// 4. BACKEND HEALTH CHECK ENGINE
+// ------------------------------------------------------------
+async function checkBackendHealth() {
+  const offlineBanner = document.getElementById('offline-banner');
+  try {
+    const response = await fetch(`${API_BASE_URL}/health`, { cache: 'no-store' });
+    if (response.ok) {
+      offlineBanner.classList.add('hidden');
+    } else {
+      offlineBanner.classList.remove('hidden');
+    }
+  } catch (error) {
+    offlineBanner.classList.remove('hidden');
+  }
+}
+
+// ------------------------------------------------------------
+// 5. FETCH & RENDER PROJECTS ENGINE
+// ------------------------------------------------------------
+async function fetchProjects() {
+  const gridContainer = document.getElementById('project-grid');
+  const emptyState = document.getElementById('empty-state');
+
+  try {
+    let url = `${API_BASE_URL}/projects?`;
+    const params = new URLSearchParams();
+
+    if (searchQuery) params.append('q', searchQuery);
+    if (activeTag && activeTag !== 'All') params.append('tag', activeTag);
+
+    url += params.toString();
+
+    const response = await fetch(url);
+    const result = await response.json();
+
+    if (result.success) {
+      allProjects = result.data || [];
+      
+      // กรองผลงานของฉันกรณีคลิกจากเมนู My Projects
+      let displayProjects = allProjects;
+      if (myProjectsOnly && currentUser) {
+        displayProjects = allProjects.filter(p => p.user_id === currentUser.id);
+      }
+
+      updateOverviewStats(allProjects);
+      renderProjectGrid(displayProjects);
+    } else {
+      showToast('ไม่สามารถดึงข้อมูลโปรเจกต์ได้', 'error');
+    }
+  } catch (error) {
+    console.error('Fetch Projects error:', error);
+    gridContainer.innerHTML = '';
+    emptyState.classList.remove('hidden');
+  }
+}
+
+function renderProjectGrid(projects) {
+  const gridContainer = document.getElementById('project-grid');
+  const emptyState = document.getElementById('empty-state');
+
+  gridContainer.innerHTML = '';
+
+  if (projects.length === 0) {
+    emptyState.classList.remove('hidden');
+    return;
+  }
+
+  emptyState.classList.add('hidden');
+
+  projects.forEach(project => {
+    const isOwnerOrAdmin = currentUser && (currentUser.role === 'admin' || currentUser.id === project.user_id);
+    
+    // แปลง Tag เป็น Badges
+    const tagList = project.tags ? project.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+    const tagBadgesHtml = tagList.map(tag => `
+      <span class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-brand-500/10 text-brand-300 border border-brand-500/20">
+        #${tag}
+      </span>
+    `).join('');
+
+    // รูปภาพ Cover
+    const coverUrl = project.cover_image 
+      ? (project.cover_image.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${project.cover_image}` : project.cover_image)
+      : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80';
+
+    const card = document.createElement('div');
+    card.className = 'glass-card rounded-2xl overflow-hidden flex flex-col transition duration-300 hover:-translate-y-1.5 group';
     card.innerHTML = `
-      <div class="relative h-48 overflow-hidden">
-        <img src="${coverUrl}" alt="${project.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-        ${actionButtons}
+      <!-- Cover Image -->
+      <div class="relative h-48 w-full overflow-hidden bg-slate-900">
+        <img 
+          src="${coverUrl}" 
+          alt="${escapeHtml(project.title)}" 
+          class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+          onerror="this.src='https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80'"
+        >
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+        
+        <!-- Permission Actions (Edit / Delete) -->
+        ${isOwnerOrAdmin ? `
+          <div class="absolute top-3 right-3 flex items-center gap-1.5 opacity-90 group-hover:opacity-100 transition">
+            <button 
+              onclick="openProjectModal('edit', ${project.id})" 
+              title="แก้ไขโปรเจกต์"
+              class="w-8 h-8 rounded-lg bg-slate-900/90 text-amber-400 hover:bg-amber-500 hover:text-white flex items-center justify-center text-xs transition border border-amber-500/30 shadow-lg"
+            >
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button 
+              onclick="deleteProject(${project.id})" 
+              title="ลบโปรเจกต์"
+              class="w-8 h-8 rounded-lg bg-slate-900/90 text-rose-400 hover:bg-rose-600 hover:text-white flex items-center justify-center text-xs transition border border-rose-500/30 shadow-lg"
+            >
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        ` : ''}
       </div>
-      <div class="p-5 flex-grow flex flex-col">
-        <div class="flex justify-between items-start mb-2">
-          <h3 class="text-xl font-bold text-white leading-tight cursor-pointer hover:text-brand-400 view-project-btn" data-id="${project.id}">${project.title}</h3>
+
+      <!-- Card Body -->
+      <div class="p-5 flex-1 flex flex-col justify-between space-y-4">
+        <div class="space-y-2">
+          <!-- Tags -->
+          <div class="flex flex-wrap gap-1.5">
+            ${tagBadgesHtml || '<span class="text-[10px] text-slate-500">General</span>'}
+          </div>
+
+          <!-- Title -->
+          <h3 class="font-heading text-lg font-bold text-white group-hover:text-brand-400 transition line-clamp-1">
+            ${escapeHtml(project.title)}
+          </h3>
+
+          <!-- Short Description -->
+          <p class="text-xs text-slate-400 leading-relaxed line-clamp-2">
+            ${escapeHtml(project.short_description)}
+          </p>
         </div>
-        <p class="text-slate-400 text-sm mb-4 flex-grow line-clamp-3">${project.description}</p>
-        <div class="flex flex-wrap gap-2 mb-4">
-          ${(project.tags || []).map(t => `<span class="text-xs bg-slate-800 text-brand-300 px-2 py-1 rounded-md border border-slate-700">${t}</span>`).join('')}
-        </div>
-        <div class="flex justify-between items-center text-xs text-slate-500 mt-auto pt-4 border-t border-slate-800">
-          <span><i class="fa-regular fa-user mr-1"></i> ${project.author_name}</span>
-          <span><i class="fa-regular fa-calendar mr-1"></i> ${new Date(project.created_at).toLocaleDateString()}</span>
+
+        <!-- Footer Meta & Detail Button -->
+        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <div class="w-6 h-6 rounded-md bg-slate-800 text-brand-400 flex items-center justify-center text-[10px] font-bold">
+              ${(project.author_name || 'U').charAt(0).toUpperCase()}
+            </div>
+            <span class="text-[11px] font-medium text-slate-300 truncate max-w-[110px]">
+              ${escapeHtml(project.author_name || 'Anonymous')}
+            </span>
+          </div>
+
+          <button 
+            onclick="openDetailModal(${project.id})" 
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-brand-500/10 hover:bg-brand-500 text-brand-300 hover:text-white transition flex items-center gap-1.5"
+          >
+            <span>ดูรายละเอียด</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
         </div>
       </div>
     `;
-    grid.appendChild(card);
+
+    gridContainer.appendChild(card);
   });
 }
 
-function renderPagination() {
-  const container = document.getElementById('pagination-container');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  const { page, totalPages } = state.pagination;
-  
-  if (totalPages <= 1) return;
+function updateOverviewStats(projects) {
+  document.getElementById('stat-total-projects').textContent = projects.length;
 
-  for (let i = 1; i <= totalPages; i++) {
-    const btn = document.createElement('button');
-    btn.className = `px-3 py-1 rounded-md border transition ${i === page ? 'bg-brand-600 border-brand-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}`;
-    btn.textContent = i;
-    btn.onclick = () => fetchProjects(i);
-    container.appendChild(btn);
-  }
+  const tagSet = new Set();
+  const authorSet = new Set();
+
+  projects.forEach(p => {
+    if (p.tags) {
+      p.tags.split(',').forEach(t => tagSet.add(t.trim().toLowerCase()));
+    }
+    if (p.author_name) authorSet.add(p.author_name);
+  });
+
+  document.getElementById('stat-total-tags').textContent = tagSet.size;
+  document.getElementById('stat-total-authors').textContent = authorSet.size;
 }
 
-// --- 7. Event Listeners & Modals ---
-function setupEventListeners() {
-  // Auth Modal
-  const loginModal = document.getElementById('login-modal');
-  const loginBtn = document.getElementById('login-btn');
-  const closeLoginBtn = document.getElementById('close-login-modal');
-  const showRegister = document.getElementById('show-register');
-  const showLogin = document.getElementById('show-login');
-  const loginForm = document.getElementById('login-form-container');
-  const registerForm = document.getElementById('register-form-container');
-
-  if (loginBtn) loginBtn.onclick = () => loginModal.classList.remove('hidden');
-  if (closeLoginBtn) closeLoginBtn.onclick = () => loginModal.classList.add('hidden');
-  if (showRegister) showRegister.onclick = (e) => { e.preventDefault(); loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); };
-  if (showLogin) showLogin.onclick = (e) => { e.preventDefault(); registerForm.classList.add('hidden'); loginForm.classList.remove('hidden'); };
-
-  // Logout
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) logoutBtn.onclick = (e) => { e.preventDefault(); logout(); };
-
-  // Search & Filter
+// ------------------------------------------------------------
+// 6. SEARCH & TAG FILTERING CONTROLLER
+// ------------------------------------------------------------
+function setupSearchListeners() {
   const searchInput = document.getElementById('search-input');
-  const searchBtn = document.getElementById('search-btn');
-  
-  if (searchBtn) {
-    searchBtn.onclick = () => {
-      state.filters.search = searchInput.value;
-      fetchProjects(1);
-    };
-  }
-  if (searchInput) {
-    searchInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        state.filters.search = searchInput.value;
-        fetchProjects(1);
-      }
-    });
-  }
+  const navSearchInput = document.getElementById('nav-search-input');
+  const clearBtn = document.getElementById('clear-search-btn');
 
-  // Tag Filtering Delegation
-  const tagsContainer = document.getElementById('tags-filter-container');
-  if (tagsContainer) {
-    tagsContainer.addEventListener('click', (e) => {
-      if (e.target.classList.contains('tag-pill')) {
-        document.querySelectorAll('.tag-pill').forEach(btn => {
-          btn.classList.remove('bg-brand-600', 'border-brand-500', 'text-white');
-          btn.classList.add('bg-slate-800', 'border-slate-700');
-        });
-        e.target.classList.add('bg-brand-600', 'border-brand-500', 'text-white');
-        e.target.classList.remove('bg-slate-800', 'border-slate-700');
-        
-        state.filters.tag = e.target.dataset.tag;
-        fetchProjects(1);
-      }
-    });
-  }
+  let debounceTimer;
 
-  // Project Modal
-  const projectModal = document.getElementById('project-modal');
-  const closeProjectModal = document.getElementById('close-project-modal');
-  const createProjectBtn = document.getElementById('create-project-btn');
-  
-  if (createProjectBtn) {
-    createProjectBtn.onclick = () => {
-      document.getElementById('project-form').reset();
-      document.getElementById('project-id').value = '';
-      document.getElementById('modal-title').textContent = 'Create New Project';
-      projectModal.classList.remove('hidden');
-    };
-  }
-  if (closeProjectModal) {
-    closeProjectModal.onclick = () => projectModal.classList.add('hidden');
-  }
+  const handleSearch = (val) => {
+    searchQuery = val.trim();
+    if (searchInput) searchInput.value = searchQuery;
+    if (navSearchInput) navSearchInput.value = searchQuery;
 
-  // Project Actions Delegation (Edit/Delete/View)
-  const projectsGrid = document.getElementById('projects-container');
-  if (projectsGrid) {
-    projectsGrid.addEventListener('click', async (e) => {
-      const editBtn = e.target.closest('.edit-project-btn');
-      const deleteBtn = e.target.closest('.delete-project-btn');
-      const viewBtn = e.target.closest('.view-project-btn');
-      
-      if (editBtn) {
-        const id = editBtn.dataset.id;
-        openEditModal(id);
-      } else if (deleteBtn) {
-        const id = deleteBtn.dataset.id;
-        if (confirm('Are you sure you want to delete this project?')) {
-          await deleteProject(id);
-        }
-      } else if (viewBtn) {
-        // Implement view details if needed, or redirect
-        console.log('View project', viewBtn.dataset.id);
-      }
-    });
-  }
-
-  setupForms();
-}
-
-function setupForms() {
-  // Login Submit
-  const loginFormEl = document.getElementById('login-form');
-  if (loginFormEl) {
-    loginFormEl.onsubmit = async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('login-email').value;
-      const password = document.getElementById('login-password').value;
-      
-      try {
-        const res = await fetchAPI('/auth/login', {
-          method: 'POST',
-          body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        
-        if (res.ok) {
-          localStorage.setItem('token', data.token);
-          state.jwtToken = data.token;
-          await checkAuth();
-          document.getElementById('login-modal').classList.add('hidden');
-          showToast('Logged in successfully');
-        } else {
-          showToast(data.message || 'Login failed', 'error');
-        }
-      } catch (err) {
-        showToast('Network error during login', 'error');
-      }
-    };
-  }
-
-  // Register Submit
-  const registerFormEl = document.getElementById('register-form');
-  if (registerFormEl) {
-    registerFormEl.onsubmit = async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('reg-name').value;
-      const email = document.getElementById('reg-email').value;
-      const password = document.getElementById('reg-password').value;
-      
-      try {
-        const res = await fetchAPI('/auth/register', {
-          method: 'POST',
-          body: JSON.stringify({ name, email, password })
-        });
-        const data = await res.json();
-        
-        if (res.ok) {
-          showToast('Registration successful! Please login.');
-          document.getElementById('show-login').click(); // Switch to login tab
-        } else {
-          showToast(data.message || 'Registration failed', 'error');
-        }
-      } catch (err) {
-        showToast('Network error during registration', 'error');
-      }
-    };
-  }
-
-  // Project Submit
-  const projectForm = document.getElementById('project-form');
-  if (projectForm) {
-    projectForm.onsubmit = async (e) => {
-      e.preventDefault();
-      const formData = new FormData(projectForm);
-      const id = document.getElementById('project-id').value;
-      
-      // Formatting tags (split by comma)
-      const tagsString = formData.get('tags');
-      const tagsArray = tagsString.split(',').map(t => t.trim()).filter(t => t);
-      
-      // We'll append them back or send as is, but formData needs to handle array properly.
-      // Easiest is to send the string and let backend handle, or JSON.
-      // Our backend handles `tags` if it's JSON or array. Wait, let's send as JSON string if sending multipart?
-      // Since it's multipart/form-data, we can just send the string. The backend can parse it.
-      
-      try {
-        let res;
-        if (id) {
-          // Update
-          res = await fetchAPI(`/projects/${id}`, {
-            method: 'PUT',
-            body: formData // Using FormData for file upload
-          });
-        } else {
-          // Create
-          res = await fetchAPI('/projects', {
-            method: 'POST',
-            body: formData
-          });
-        }
-        
-        if (res.ok) {
-          document.getElementById('project-modal').classList.add('hidden');
-          showToast(`Project ${id ? 'updated' : 'created'} successfully`);
-          fetchProjects(state.pagination.page);
-          fetchTags();
-        } else {
-          const data = await res.json();
-          showToast(data.message || 'Error saving project', 'error');
-        }
-      } catch (err) {
-        showToast('Network error while saving project', 'error');
-      }
-    };
-  }
-}
-
-async function openEditModal(id) {
-  try {
-    const res = await fetchAPI(`/projects/${id}`);
-    if (res.ok) {
-      const project = await res.json();
-      document.getElementById('project-id').value = project.id;
-      document.getElementById('title').value = project.title;
-      document.getElementById('short_description').value = project.short_description;
-      document.getElementById('full_description').value = project.full_description;
-      document.getElementById('github_url').value = project.github_url || '';
-      document.getElementById('demo_url').value = project.demo_url || '';
-      document.getElementById('tags').value = (project.tags || []).join(', ');
-      
-      document.getElementById('modal-title').textContent = 'Edit Project';
-      document.getElementById('project-modal').classList.remove('hidden');
-    }
-  } catch (err) {
-    showToast('Failed to load project details', 'error');
-  }
-}
-
-async function deleteProject(id) {
-  try {
-    const res = await fetchAPI(`/projects/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      showToast('Project deleted');
-      fetchProjects(state.pagination.page);
+    if (searchQuery !== '') {
+      clearBtn.classList.remove('hidden');
     } else {
-      const data = await res.json();
-      showToast(data.message || 'Error deleting project', 'error');
+      clearBtn.classList.add('hidden');
     }
-  } catch (err) {
-    showToast('Network error during deletion', 'error');
+
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+      updateFilterStatusText();
+      fetchProjects();
+    }, 300);
+  };
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => handleSearch(e.target.value));
+  }
+  if (navSearchInput) {
+    navSearchInput.addEventListener('input', (e) => handleSearch(e.target.value));
   }
 }
 
-// --- 8. Initialization ---
-async function checkBackendConnection() {
-  const offlineBanner = document.getElementById('offline-banner');
+function selectTag(tag) {
+  activeTag = tag;
+  myProjectsOnly = false;
+
+  // ปรับแต่ง Active UI ของ Tag Buttons
+  const tagButtons = document.querySelectorAll('.tag-filter-btn');
+  tagButtons.forEach(btn => {
+    if (btn.textContent.includes(tag) || (tag === 'All' && btn.textContent.includes('ทั้งหมด'))) {
+      btn.className = 'tag-filter-btn active-tag px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-brand-600 text-white shadow-lg shadow-brand-600/30';
+    } else {
+      btn.className = 'tag-filter-btn px-4 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-slate-900 text-slate-400 border border-slate-800 hover:bg-slate-800 hover:text-slate-200';
+    }
+  });
+
+  updateFilterStatusText();
+  fetchProjects();
+}
+
+function clearSearch() {
+  searchQuery = '';
+  document.getElementById('search-input').value = '';
+  document.getElementById('nav-search-input').value = '';
+  document.getElementById('clear-search-btn').classList.add('hidden');
+  updateFilterStatusText();
+  fetchProjects();
+}
+
+function filterMyProjects() {
+  if (!currentUser) return;
+  myProjectsOnly = true;
+  activeTag = 'All';
+  searchQuery = '';
+  updateFilterStatusText();
+  fetchProjects();
+}
+
+function resetFilters() {
+  activeTag = 'All';
+  searchQuery = '';
+  myProjectsOnly = false;
+  document.getElementById('search-input').value = '';
+  document.getElementById('nav-search-input').value = '';
+  document.getElementById('clear-search-btn').classList.add('hidden');
+
+  selectTag('All');
+}
+
+function updateFilterStatusText() {
+  const statusEl = document.getElementById('filter-status');
+  const textEl = document.getElementById('filter-status-text');
+
+  let parts = [];
+  if (myProjectsOnly) parts.push('ผลงานของฉัน');
+  if (activeTag && activeTag !== 'All') parts.push(`แท็ก: #${activeTag}`);
+  if (searchQuery) parts.push(`คำค้น: "${searchQuery}"`);
+
+  if (parts.length > 0) {
+    textEl.textContent = parts.join(' | ');
+    statusEl.classList.remove('hidden');
+  } else {
+    statusEl.classList.add('hidden');
+  }
+}
+
+// ------------------------------------------------------------
+// 7. PROJECT CRUD OPERATIONS
+// ------------------------------------------------------------
+async function openProjectModal(mode, projectId = null) {
+  if (!currentUser || !authToken) {
+    showToast('กรุณาเข้าสู่ระบบก่อนเพิ่มหรือแก้ไขผลงาน', 'error');
+    openAuthModal('login');
+    return;
+  }
+
+  const modal = document.getElementById('project-modal');
+  const titleEl = document.getElementById('project-modal-title');
+  const form = document.getElementById('project-form');
+
+  form.reset();
+  document.getElementById('project-id').value = '';
+
+  if (mode === 'edit' && projectId) {
+    titleEl.innerHTML = `<i class="fa-solid fa-pen-to-square text-amber-400"></i><span>แก้ไขข้อมูลผลงานโปรเจกต์</span>`;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects/${projectId}`);
+      const result = await response.json();
+
+      if (result.success) {
+        const p = result.data;
+        document.getElementById('project-id').value = p.id;
+        document.getElementById('project-title').value = p.title;
+        document.getElementById('project-short-desc').value = p.short_description;
+        document.getElementById('project-full-desc').value = p.full_description;
+        document.getElementById('project-cover-url').value = p.cover_image && !p.cover_image.startsWith('/') ? p.cover_image : '';
+        document.getElementById('project-demo-url').value = p.demo_url || '';
+        document.getElementById('project-github-url').value = p.github_url || '';
+        document.getElementById('project-tags').value = p.tags || '';
+      }
+    } catch (e) {
+      showToast('เกิดข้อผิดพลาดในการโหลดข้อมูลโปรเจกต์', 'error');
+      return;
+    }
+  } else {
+    titleEl.innerHTML = `<i class="fa-solid fa-plus-circle text-brand-400"></i><span>เพิ่มผลงานโปรเจกต์ใหม่</span>`;
+  }
+
+  modal.classList.remove('hidden');
+}
+
+function closeProjectModal() {
+  document.getElementById('project-modal').classList.add('hidden');
+}
+
+async function handleProjectSubmit(event) {
+  event.preventDefault();
+
+  const projectId = document.getElementById('project-id').value;
+  const title = document.getElementById('project-title').value.trim();
+  const short_description = document.getElementById('project-short-desc').value.trim();
+  const full_description = document.getElementById('project-full-desc').value.trim();
+  const cover_image_url = document.getElementById('project-cover-url').value.trim();
+  const fileInput = document.getElementById('project-cover-file');
+  const demo_url = document.getElementById('project-demo-url').value.trim();
+  const github_url = document.getElementById('project-github-url').value.trim();
+  const tags = document.getElementById('project-tags').value.trim();
+
+  const formData = new FormData();
+  formData.append('title', title);
+  formData.append('short_description', short_description);
+  formData.append('full_description', full_description);
+  formData.append('cover_image_url', cover_image_url);
+  formData.append('demo_url', demo_url);
+  formData.append('github_url', github_url);
+  formData.append('tags', tags);
+
+  if (fileInput.files.length > 0) {
+    formData.append('cover_image_file', fileInput.files[0]);
+  }
+
+  const isEdit = !!projectId;
+  const url = isEdit ? `${API_BASE_URL}/projects/${projectId}` : `${API_BASE_URL}/projects`;
+  const method = isEdit ? 'PUT' : 'POST';
+
   try {
-    const res = await fetch(`${API_BASE_URL.replace('/api', '')}/api/health`);
-    if (res.ok) {
-      if (offlineBanner) offlineBanner.classList.add('hidden');
-      return true;
+    const response = await fetch(url, {
+      method: method,
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      },
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showToast(result.message || (isEdit ? 'อัปเดตเรียบร้อย' : 'เพิ่มผลงานเรียบร้อย'), 'success');
+      closeProjectModal();
+      fetchProjects();
+    } else {
+      showToast(result.message || 'บันทึกข้อมูลไม่สำเร็จ', 'error');
     }
-  } catch (err) {
-    console.error('Backend connection error:', err);
+  } catch (error) {
+    console.error('Project submit error:', error);
+    showToast('เกิดข้อผิดพลาดในการบันทึกข้อมูล', 'error');
   }
-  if (offlineBanner) offlineBanner.classList.remove('hidden');
-  return false;
 }
 
-async function init() {
-  await checkBackendConnection();
-  await checkAuth();
-  await fetchLayout();
-  await fetchTags();
-  await fetchProjects(1);
-  setupEventListeners();
+async function deleteProject(projectId) {
+  if (!currentUser || !authToken) return;
+
+  if (!confirm('คุณแน่ใจหรือไม่ว่าต้องการลบผลงานโปรเจกต์นี้ออกจากระบบ?')) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showToast(result.message || 'ลบโปรเจกต์เรียบร้อย', 'success');
+      fetchProjects();
+    } else {
+      showToast(result.message || 'ไม่สามารถลบโปรเจกต์ได้', 'error');
+    }
+  } catch (error) {
+    console.error('Delete project error:', error);
+    showToast('เกิดข้อผิดพลาดในการลบโปรเจกต์', 'error');
+  }
 }
 
-// Boot up
-document.addEventListener('DOMContentLoaded', init);
+// ------------------------------------------------------------
+// 8. PROJECT DETAIL POPUP ENGINE
+// ------------------------------------------------------------
+async function openDetailModal(projectId) {
+  const modal = document.getElementById('detail-modal');
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/projects/${projectId}`);
+    const result = await response.json();
+
+    if (result.success) {
+      const p = result.data;
+
+      const coverUrl = p.cover_image 
+        ? (p.cover_image.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${p.cover_image}` : p.cover_image)
+        : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80';
+
+      document.getElementById('detail-cover').src = coverUrl;
+      document.getElementById('detail-title').textContent = p.title;
+      document.getElementById('detail-author').textContent = `${p.author_name} (@${p.author_username})`;
+      document.getElementById('detail-date').textContent = new Date(p.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+      document.getElementById('detail-full-desc').textContent = p.full_description;
+
+      // Tags Badges
+      const tagList = p.tags ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+      document.getElementById('detail-tags').innerHTML = tagList.map(tag => `
+        <span class="px-3 py-1 rounded-lg text-xs font-semibold bg-brand-500/20 text-brand-300 border border-brand-500/30">
+          #${tag}
+        </span>
+      `).join('');
+
+      // External Action Links (Demo / GitHub)
+      const actionsContainer = document.getElementById('detail-actions');
+      actionsContainer.innerHTML = '';
+
+      if (p.demo_url) {
+        actionsContainer.innerHTML += `
+          <a href="${escapeHtml(p.demo_url)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-2">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span>เข้าชมระบบสาธิต (Live Demo)</span>
+          </a>
+        `;
+      }
+
+      if (p.github_url) {
+        actionsContainer.innerHTML += `
+          <a href="${escapeHtml(p.github_url)}" target="_blank" rel="noopener noreferrer" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl transition flex items-center gap-2">
+            <i class="fa-brands fa-github text-sm"></i>
+            <span>ซอร์สโค้ด GitHub</span>
+          </a>
+        `;
+      }
+
+      modal.classList.remove('hidden');
+    }
+  } catch (error) {
+    showToast('เกิดข้อผิดพลาดในการโหลดรายละเอียดโปรเจกต์', 'error');
+  }
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal').classList.add('hidden');
+}
+
+// ------------------------------------------------------------
+// 9. AUTH MODAL ENGINE & UTILITIES
+// ------------------------------------------------------------
+function openAuthModal(defaultTab = 'login') {
+  switchAuthTab(defaultTab);
+  document.getElementById('auth-modal').classList.remove('hidden');
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.add('hidden');
+}
+
+function switchAuthTab(tab) {
+  const loginTabBtn = document.getElementById('tab-login');
+  const registerTabBtn = document.getElementById('tab-register');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+
+  if (tab === 'login') {
+    loginTabBtn.className = 'flex-1 py-3 text-sm font-semibold text-brand-400 border-b-2 border-brand-500 transition';
+    registerTabBtn.className = 'flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition';
+    loginForm.classList.remove('hidden');
+    registerForm.classList.add('hidden');
+  } else {
+    registerTabBtn.className = 'flex-1 py-3 text-sm font-semibold text-brand-400 border-b-2 border-brand-500 transition';
+    loginTabBtn.className = 'flex-1 py-3 text-sm font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition';
+    registerForm.classList.remove('hidden');
+    loginForm.classList.add('hidden');
+  }
+}
+
+// Toast Alert System
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+
+  const bgColors = {
+    success: 'bg-emerald-600/90 text-white border-emerald-500',
+    error: 'bg-rose-600/90 text-white border-rose-500',
+    info: 'bg-brand-600/90 text-white border-brand-500'
+  };
+
+  const icons = {
+    success: 'fa-circle-check',
+    error: 'fa-circle-exclamation',
+    info: 'fa-circle-info'
+  };
+
+  toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-md text-xs font-semibold transition duration-300 transform translate-y-2 opacity-0 ${bgColors[type] || bgColors.success}`;
+  toast.innerHTML = `
+    <i class="fa-solid ${icons[type] || icons.success} text-base"></i>
+    <span>${escapeHtml(message)}</span>
+  `;
+
+  container.appendChild(toast);
+
+  // Trigger animation
+  setTimeout(() => {
+    toast.classList.remove('translate-y-2', 'opacity-0');
+  }, 10);
+
+  // Auto Dismiss
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
