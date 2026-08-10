@@ -474,11 +474,16 @@ app.get('*', (req, res) => {
 // ------------------------------------------------------------
 // 6. START SERVER
 // ------------------------------------------------------------
-app.listen(PORT, () => {
-  console.log(`============================================================`);
-  console.log(`🚀 Department Project Showcase Backend Server Running!`);
-  console.log(`🌐 URL: http://localhost:${PORT}`);
-  console.log(`📁 Static Frontend Served from: ${frontendDir}`);
-  console.log(`============================================================`);
-  checkDatabaseConnection();
-});
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`============================================================`);
+    console.log(`🚀 Department Project Showcase Backend Server Running!`);
+    console.log(`🌐 URL: http://localhost:${PORT}`);
+    console.log(`📁 Static Frontend Served from: ${frontendDir}`);
+    console.log(`============================================================`);
+    checkDatabaseConnection();
+  });
+}
+
+module.exports = app;
+
