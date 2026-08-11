@@ -17,6 +17,7 @@ let currentUser = null;
 let authToken = null;
 let allProjects = [];
 let activeTag = 'All';
+let activeDepartment = 'All';
 let searchQuery = '';
 let myProjectsOnly = false;
 let healthCheckInterval = null;
@@ -333,6 +334,7 @@ async function fetchProjects() {
 
     if (searchQuery) params.append('q', searchQuery);
     if (activeTag && activeTag !== 'All') params.append('tag', activeTag);
+    if (activeDepartment && activeDepartment !== 'All') params.append('department', activeDepartment);
 
     url += params.toString();
 
@@ -392,6 +394,11 @@ function renderProjectGrid(projects) {
       </span>
     `).join('');
 
+    let deptBadgeHtml = '';
+    if (project.department) {
+      deptBadgeHtml = `<span class="px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-sm whitespace-nowrap">${escapeHtml(project.department)}</span>`;
+    }
+
     const coverUrl = project.cover_image 
       ? (project.cover_image.startsWith('/') ? `${API_BASE_URL.replace('/api', '')}${project.cover_image}` : project.cover_image)
       : 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=800&q=80';
@@ -435,7 +442,8 @@ function renderProjectGrid(projects) {
       <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3 sm:space-y-4">
         <div class="space-y-2 sm:space-y-2.5">
           <!-- Tags -->
-          <div class="flex flex-wrap gap-1.5">
+          <div class="flex flex-wrap gap-1.5 items-center">
+            ${deptBadgeHtml}
             ${tagBadgesHtml || '<span class="text-[10px] font-mono text-slate-500">#General</span>'}
           </div>
 
@@ -557,6 +565,13 @@ function selectTag(tag) {
   fetchProjects();
 }
 
+function selectDepartment(dept) {
+  activeDepartment = dept;
+  myProjectsOnly = false;
+  updateFilterStatusText();
+  fetchProjects();
+}
+
 function clearSearch() {
   searchQuery = '';
   const searchInput = document.getElementById('search-input');
@@ -575,23 +590,29 @@ function filterMyProjects() {
   if (!currentUser) return;
   myProjectsOnly = true;
   activeTag = 'All';
+  activeDepartment = 'All';
   searchQuery = '';
+  const deptSelect = document.getElementById('department-filter');
+  if (deptSelect) deptSelect.value = 'All';
   updateFilterStatusText();
   fetchProjects();
 }
 
 function resetFilters() {
   activeTag = 'All';
+  activeDepartment = 'All';
   searchQuery = '';
   myProjectsOnly = false;
 
   const searchInput = document.getElementById('search-input');
   const navSearchInput = document.getElementById('nav-search-input');
   const clearBtn = document.getElementById('clear-search-btn');
+  const deptSelect = document.getElementById('department-filter');
 
   if (searchInput) searchInput.value = '';
   if (navSearchInput) navSearchInput.value = '';
   if (clearBtn) clearBtn.classList.add('hidden');
+  if (deptSelect) deptSelect.value = 'All';
 
   selectTag('All');
 }
@@ -605,6 +626,7 @@ function updateFilterStatusText() {
   let parts = [];
   if (myProjectsOnly) parts.push('ผลงานของฉัน');
   if (activeTag && activeTag !== 'All') parts.push(`แท็ก: #${activeTag}`);
+  if (activeDepartment && activeDepartment !== 'All') parts.push(`แผนก: ${activeDepartment}`);
   if (searchQuery) parts.push(`คำค้น: "${searchQuery}"`);
 
   if (parts.length > 0) {
@@ -651,6 +673,7 @@ async function openProjectModal(mode, projectId = null) {
         document.getElementById('project-demo-url').value = p.demo_url || '';
         document.getElementById('project-github-url').value = p.github_url || '';
         document.getElementById('project-tags').value = p.tags || '';
+        document.getElementById('project-department').value = p.department || '';
       }
     } catch (e) {
       showToast('เกิดข้อผิดพลาดในการโหลดข้อมูลโปรเจกต์', 'error');
@@ -680,6 +703,7 @@ async function handleProjectSubmit(event) {
   const demo_url = document.getElementById('project-demo-url').value.trim();
   const github_url = document.getElementById('project-github-url').value.trim();
   const tags = document.getElementById('project-tags').value.trim();
+  const department = document.getElementById('project-department').value;
 
   const formData = new FormData();
   formData.append('title', title);
@@ -689,6 +713,7 @@ async function handleProjectSubmit(event) {
   formData.append('demo_url', demo_url);
   formData.append('github_url', github_url);
   formData.append('tags', tags);
+  formData.append('department', department);
 
   if (fileInput && fileInput.files.length > 0) {
     formData.append('cover_image_file', fileInput.files[0]);
@@ -778,6 +803,10 @@ async function openDetailModal(projectId) {
       if (coverEl) coverEl.src = coverUrl;
       if (titleEl) titleEl.textContent = p.title;
       if (authorEl) authorEl.textContent = `${p.author_name} (@${p.author_username})`;
+      
+      const deptEl = document.getElementById('detail-department');
+      if (deptEl) deptEl.textContent = p.department || '-';
+
       if (dateEl) dateEl.textContent = new Date(p.created_at).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
       if (descEl) descEl.textContent = p.full_description;
 

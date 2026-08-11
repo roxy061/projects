@@ -348,22 +348,51 @@
     <section class="space-y-3 sm:space-y-4">
       <div class="flex flex-col gap-3 sm:gap-3.5">
         
-        <!-- Main Search Bar -->
-        <div class="relative flex-1">
-          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-          <input 
-            type="text" 
-            id="search-input" 
-            placeholder="ค้นหาชื่อโปรเจกต์, คำอธิบาย หรือแท็ก..." 
-            class="w-full pl-10 pr-10 py-3 sm:py-2.5 bg-dark-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm sm:text-xs shadow-inner transition"
-          >
-          <button 
-            id="clear-search-btn" 
-            onclick="clearSearch()" 
-            class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs p-1"
-          >
-            <i class="fa-solid fa-xmark"></i>
-          </button>
+        <!-- Main Search Bar & Department Filter -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input 
+              type="text" 
+              id="search-input" 
+              placeholder="ค้นหาชื่อโปรเจกต์, คำอธิบาย หรือแท็ก..." 
+              class="w-full pl-10 pr-10 py-3 sm:py-2.5 bg-dark-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm sm:text-xs shadow-inner transition"
+            >
+            <button 
+              id="clear-search-btn" 
+              onclick="clearSearch()" 
+              class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs p-1"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="w-full sm:w-48 shrink-0 relative">
+            <select id="department-filter" onchange="selectDepartment(this.value)" class="w-full px-4 py-3 sm:py-2.5 bg-dark-900 border border-slate-800 rounded-xl text-slate-300 focus:outline-none focus:border-brand-500 text-sm sm:text-xs shadow-inner transition appearance-none cursor-pointer">
+              <option value="All">ทุกแผนก (All)</option>
+              <optgroup label="กลุ่มบริหารธุรกิจและการจัดการ">
+                <option value="การบัญชี">แผนกวิชาการบัญชี</option>
+                <option value="การตลาด">แผนกวิชาการตลาด</option>
+                <option value="การจัดการสำนักงานดิจิทัล">แผนกวิชาการจัดการสำนักงานดิจิทัล</option>
+                <option value="การโรงแรม">แผนกวิชาการโรงแรม</option>
+                <option value="การจัดการธุรกิจท่องเที่ยว">แผนกวิชาการจัดการธุรกิจท่องเที่ยว</option>
+              </optgroup>
+              <optgroup label="กลุ่มคหกรรมและศิลปะ">
+                <option value="คหกรรมศาสตร์">แผนกวิชาคหกรรมศาสตร์</option>
+                <option value="อาหารและโภชนาการ">แผนกวิชาอาหารและโภชนาการ</option>
+                <option value="เทคโนโลยีแฟชั่นและเครื่องแต่งกาย">แผนกวิชาเทคโนโลยีแฟชั่นและเครื่องแต่งกาย</option>
+              </optgroup>
+              <optgroup label="กลุ่มเทคโนโลยีและดิจิทัล">
+                <option value="เทคโนโลยีสารสนเทศ">แผนกวิชาเทคโนโลยีสารสนเทศ</option>
+                <option value="เทคโนโลยีธุรกิจดิจิทัล">แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล</option>
+              </optgroup>
+              <optgroup label="กลุ่มอื่นๆ">
+                <option value="ภาษาต่างประเทศ">แผนกวิชาภาษาต่างประเทศ</option>
+                <option value="อุตสาหกรรมโลจิสติกส์">แผนกวิชาอุตสาหกรรมโลจิสติกส์</option>
+                <option value="สามัญ">แผนกวิชาสามัญ</option>
+              </optgroup>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 text-xs pointer-events-none"></i>
+          </div>
         </div>
 
         <!-- Tag Filter Pills -->
@@ -605,15 +634,48 @@
       <form id="project-form" onsubmit="handleProjectSubmit(event)" class="space-y-4">
         <input type="hidden" id="project-id">
 
-        <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อโปรเจกต์ (Project Title) <span class="text-rose-400">*</span></label>
-          <input 
-            type="text" 
-            id="project-title" 
-            required 
-            placeholder="ตัวอย่าง: ระบบบริหารจัดการคลังสินค้าด้วย IoT"
-            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
-          >
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <div class="sm:col-span-3">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">ชื่อโปรเจกต์ (Project Title) <span class="text-rose-400">*</span></label>
+            <input 
+              type="text" 
+              id="project-title" 
+              required 
+              placeholder="ตัวอย่าง: ระบบบริหารจัดการคลังสินค้าด้วย IoT"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
+            >
+          </div>
+          <div class="sm:col-span-1 relative">
+            <label class="block text-xs font-semibold text-slate-300 mb-1.5">แผนก (Dept.)</label>
+            <select 
+              id="project-department" 
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 appearance-none"
+            >
+              <option value="">- เลือกแผนก -</option>
+              <optgroup label="กลุ่มบริหารธุรกิจและการจัดการ">
+                <option value="การบัญชี">แผนกวิชาการบัญชี</option>
+                <option value="การตลาด">แผนกวิชาการตลาด</option>
+                <option value="การจัดการสำนักงานดิจิทัล">แผนกวิชาการจัดการสำนักงานดิจิทัล</option>
+                <option value="การโรงแรม">แผนกวิชาการโรงแรม</option>
+                <option value="การจัดการธุรกิจท่องเที่ยว">แผนกวิชาการจัดการธุรกิจท่องเที่ยว</option>
+              </optgroup>
+              <optgroup label="กลุ่มคหกรรมและศิลปะ">
+                <option value="คหกรรมศาสตร์">แผนกวิชาคหกรรมศาสตร์</option>
+                <option value="อาหารและโภชนาการ">แผนกวิชาอาหารและโภชนาการ</option>
+                <option value="เทคโนโลยีแฟชั่นและเครื่องแต่งกาย">แผนกวิชาเทคโนโลยีแฟชั่นและเครื่องแต่งกาย</option>
+              </optgroup>
+              <optgroup label="กลุ่มเทคโนโลยีและดิจิทัล">
+                <option value="เทคโนโลยีสารสนเทศ">แผนกวิชาเทคโนโลยีสารสนเทศ</option>
+                <option value="เทคโนโลยีธุรกิจดิจิทัล">แผนกวิชาเทคโนโลยีธุรกิจดิจิทัล</option>
+              </optgroup>
+              <optgroup label="กลุ่มอื่นๆ">
+                <option value="ภาษาต่างประเทศ">แผนกวิชาภาษาต่างประเทศ</option>
+                <option value="อุตสาหกรรมโลจิสติกส์">แผนกวิชาอุตสาหกรรมโลจิสติกส์</option>
+                <option value="สามัญ">แผนกวิชาสามัญ</option>
+              </optgroup>
+            </select>
+            <i class="fa-solid fa-chevron-down absolute right-4 top-[38px] sm:top-[34px] text-slate-500 text-xs pointer-events-none"></i>
+          </div>
         </div>
 
         <div>
@@ -745,6 +807,10 @@
             <div>
               <p class="text-[10px] text-slate-400">เจ้าของผลงาน:</p>
               <p class="text-xs font-semibold text-slate-200" id="detail-author"></p>
+            </div>
+            <div class="ml-1 sm:ml-3 pl-3 sm:pl-4 border-l border-slate-700/80">
+              <p class="text-[10px] text-slate-400">แผนก:</p>
+              <p class="text-xs font-semibold text-brand-400" id="detail-department">-</p>
             </div>
           </div>
           <div class="sm:text-right">

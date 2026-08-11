@@ -115,7 +115,8 @@ async function migrateDatabaseSchema() {
       "ALTER TABLE users ADD COLUMN `email` VARCHAR(100) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN `github` VARCHAR(255) DEFAULT NULL",
       "ALTER TABLE users ADD COLUMN `website` VARCHAR(255) DEFAULT NULL",
-      "ALTER TABLE users ADD COLUMN `avatar` VARCHAR(255) DEFAULT NULL"
+      "ALTER TABLE users ADD COLUMN `avatar` VARCHAR(255) DEFAULT NULL",
+      "ALTER TABLE projects ADD COLUMN `department` VARCHAR(100) DEFAULT NULL"
     ];
 
     for (const colQuery of columns) {
@@ -436,7 +437,7 @@ app.put('/api/users/profile/me', authenticateToken, upload.single('avatar_file')
  */
 app.get('/api/projects', async (req, res) => {
   try {
-    const { q, tag } = req.query;
+    const { q, tag, department } = req.query;
 
     let sql = `
       SELECT p.*, u.fullname AS author_name, u.username AS author_username 
@@ -458,6 +459,12 @@ app.get('/api/projects', async (req, res) => {
       const tagTerm = `%${tag.trim()}%`;
       conditions.push('p.tags LIKE ?');
       params.push(tagTerm);
+    }
+
+    // เงื่อนไขการกรองแผนก (department)
+    if (department && department.trim() !== '' && department !== 'All') {
+      conditions.push('p.department = ?');
+      params.push(department.trim());
     }
 
     if (conditions.length > 0) {
@@ -515,7 +522,7 @@ app.get('/api/projects/:id', async (req, res) => {
  */
 app.post('/api/projects', authenticateToken, upload.single('cover_image_file'), async (req, res) => {
   try {
-    const { title, short_description, full_description, demo_url, github_url, tags, cover_image_url } = req.body;
+    const { title, short_description, full_description, demo_url, github_url, tags, cover_image_url, department } = req.body;
     const userId = req.user.id;
 
     if (!title || !short_description || !full_description) {
@@ -532,8 +539,8 @@ app.post('/api/projects', authenticateToken, upload.single('cover_image_file'), 
 
     const [result] = await pool.query(
       `INSERT INTO projects 
-       (user_id, title, short_description, full_description, cover_image, demo_url, github_url, tags) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+       (user_id, title, short_description, full_description, cover_image, demo_url, github_url, tags, department) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userId,
         title.trim(),
@@ -542,7 +549,8 @@ app.post('/api/projects', authenticateToken, upload.single('cover_image_file'), 
         coverImagePath,
         demo_url ? demo_url.trim() : '',
         github_url ? github_url.trim() : '',
-        tags ? tags.trim() : ''
+        tags ? tags.trim() : '',
+        department ? department.trim() : ''
       ]
     );
 
@@ -564,7 +572,7 @@ app.post('/api/projects', authenticateToken, upload.single('cover_image_file'), 
 app.put('/api/projects/:id', authenticateToken, upload.single('cover_image_file'), async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, short_description, full_description, demo_url, github_url, tags, cover_image_url } = req.body;
+    const { title, short_description, full_description, demo_url, github_url, tags, cover_image_url, department } = req.body;
     const userId = req.user.id;
     const userRole = req.user.role;
 
@@ -591,7 +599,7 @@ app.put('/api/projects/:id', authenticateToken, upload.single('cover_image_file'
 
     await pool.query(
       `UPDATE projects 
-       SET title = ?, short_description = ?, full_description = ?, cover_image = ?, demo_url = ?, github_url = ?, tags = ?
+       SET title = ?, short_description = ?, full_description = ?, cover_image = ?, demo_url = ?, github_url = ?, tags = ?, department = ?
        WHERE id = ?`,
       [
         title ? title.trim() : project.title,
@@ -601,6 +609,7 @@ app.put('/api/projects/:id', authenticateToken, upload.single('cover_image_file'
         demo_url !== undefined ? demo_url.trim() : project.demo_url,
         github_url !== undefined ? github_url.trim() : project.github_url,
         tags !== undefined ? tags.trim() : project.tags,
+        department !== undefined ? department.trim() : project.department,
         id
       ]
     );
