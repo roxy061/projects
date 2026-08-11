@@ -9,9 +9,7 @@
 // ------------------------------------------------------------
 // 1. GLOBAL CONFIGURATION & STATE MANAGEMENT
 // ------------------------------------------------------------
-const API_BASE_URL = window.location.origin.includes('5000') 
-  ? '/api' 
-  : 'http://localhost:5000/api';
+const API_BASE_URL = '/api';
 
 let currentUser = null;
 let authToken = null;
