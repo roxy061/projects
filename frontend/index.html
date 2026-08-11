@@ -2,7 +2,7 @@
 <html lang="th" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Department Project Showcase - ระบบจัดเก็บและแสดงผลงานโปรเจกต์ภาควิชา</title>
   <meta name="description" content="แพลตฟอร์มคลังจัดเก็บและแสดงผลงานโปรเจกต์นิสิตนักศึกษา ภาควิชาเทคโนโลยีและคอมพิวเตอร์">
 
@@ -80,6 +80,7 @@
     .glass-card {
       background: rgba(12, 16, 23, 0.75);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.07);
     }
 
@@ -91,6 +92,11 @@
       box-shadow: 0 16px 36px -12px rgba(6, 182, 212, 0.15), 0 0 0 1px rgba(6, 182, 212, 0.15);
       transform: translateY(-3px);
     }
+    @media (max-width: 768px) {
+      .glass-card-hover:hover {
+        transform: none;
+      }
+    }
 
     .btn-inset-shine {
       box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
@@ -99,6 +105,7 @@
     .gradient-heading {
       background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 40%, #06b6d4 100%);
       -webkit-background-clip: text;
+      background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
@@ -111,16 +118,56 @@
     .pulse-ring {
       animation: pulse-ring 2s infinite ease-in-out;
     }
+
+    /* Modal scroll on mobile */
+    .modal-scroll-body {
+      max-height: calc(100dvh - 2rem);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Safe bottom padding for mobile nav */
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Hide scrollbar on tags */
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Dropdown toggle animation */
+    .dropdown-enter {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.95);
+    }
+    .dropdown-active {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      transition: all 0.18s ease-out;
+    }
+
+    /* Tap highlight remove for mobile */
+    button, a, input, textarea, select {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Touch-friendly sizing */
+    @media (max-width: 640px) {
+      input, textarea, select, button[type="submit"] {
+        font-size: 16px !important;
+      }
+    }
   </style>
 </head>
-<body class="bg-dark-950 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-brand-500 selection:text-white bg-grid-pattern">
+<body class="bg-dark-950 text-slate-100 min-h-screen min-h-[100dvh] font-sans flex flex-col antialiased selection:bg-brand-500 selection:text-white bg-grid-pattern safe-bottom">
 
   <!-- ============================================================ -->
   <!-- 1. OFFLINE BANNER (แสดงเมื่อเชื่อมต่อ Backend ไม่ได้) -->
   <!-- ============================================================ -->
   <div id="offline-banner" class="hidden bg-rose-950/90 border-b border-rose-500/30 text-rose-200 text-center py-2 px-4 font-medium text-xs sticky top-0 z-50 shadow-xl flex items-center justify-center gap-2 backdrop-blur-md">
     <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
-    <span>ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Backend (http://localhost:5000) ได้ในขณะนี้ — ระบบจะพยายามเชื่อมต่อใหม่อัตโนมัติ</span>
+    <span class="hidden sm:inline">ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Backend (http://localhost:5000) ได้ในขณะนี้</span>
+    <span class="sm:hidden">เชื่อมต่อเซิร์ฟเวอร์ไม่ได้</span>
     <button onclick="checkBackendHealth()" class="ml-2 px-2 py-0.5 bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 rounded text-[11px] font-mono transition">
       <i class="fa-solid fa-rotate-right mr-1"></i>ลองใหม่
     </button>
@@ -130,24 +177,24 @@
   <!-- 2. STICKY NAVBAR (GLASS & HIGH-CONTRAST) -->
   <!-- ============================================================ -->
   <header class="sticky top-0 z-40 glass-nav border-b border-white/[0.07] transition-all">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
       
       <!-- Brand Logo -->
-      <a href="#" class="flex items-center gap-3.5 group">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-blue-600 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-brand-600/20 group-hover:scale-105 transition-transform duration-300 btn-inset-shine">
-          <i class="fa-solid fa-cubes text-lg"></i>
+      <a href="#" onclick="resetFilters();return false;" class="flex items-center gap-2.5 sm:gap-3.5 group shrink-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-blue-600 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-brand-600/20 group-hover:scale-105 transition-transform duration-300 btn-inset-shine">
+          <i class="fa-solid fa-cubes text-base sm:text-lg"></i>
         </div>
         <div>
-          <div class="flex items-center gap-2">
-            <span class="font-heading font-extrabold text-xl tracking-tight text-white group-hover:text-brand-400 transition-colors">SHOWCASE</span>
-            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-brand-500/10 text-brand-400 border border-brand-500/20">PRO</span>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="font-heading font-extrabold text-lg sm:text-xl tracking-tight text-white group-hover:text-brand-400 transition-colors">SHOWCASE</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-mono font-bold bg-brand-500/10 text-brand-400 border border-brand-500/20">PRO</span>
           </div>
-          <span class="block text-[11px] text-slate-400 font-medium">ภาควิชาวิศวกรรมและเทคโนโลยี</span>
+          <span class="hidden sm:block text-[11px] text-slate-400 font-medium">ภาควิชาวิศวกรรมและเทคโนโลยี</span>
         </div>
       </a>
 
-      <!-- Header Search Input (Quick Search) -->
-      <div class="hidden md:flex items-center flex-1 max-w-md mx-6">
+      <!-- Header Search Input (Quick Search) - Desktop Only -->
+      <div class="hidden lg:flex items-center flex-1 max-w-md mx-6">
         <div class="relative w-full">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
           <input 
@@ -163,36 +210,42 @@
       </div>
 
       <!-- Auth Actions & User Profile -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 sm:gap-3">
         <!-- Unauthenticated Buttons -->
-        <div id="auth-logged-out" class="flex items-center gap-2">
+        <div id="auth-logged-out" class="flex items-center gap-1.5 sm:gap-2">
           <button 
             onclick="openAuthModal('login')" 
-            class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent rounded-xl transition"
+            class="px-3 sm:px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 border border-transparent rounded-xl transition"
           >
-            <i class="fa-solid fa-right-to-bracket mr-1.5 text-brand-400"></i>เข้าสู่ระบบ
+            <i class="fa-solid fa-right-to-bracket mr-1 sm:mr-1.5 text-brand-400"></i><span class="hidden xs:inline">เข้าสู่ระบบ</span><span class="xs:hidden">Login</span>
           </button>
           <button 
             onclick="openAuthModal('register')" 
-            class="px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white rounded-xl shadow-lg shadow-brand-600/20 transition transform active:scale-95 btn-inset-shine flex items-center gap-1.5"
+            class="px-3 sm:px-4 py-2 text-xs font-semibold bg-brand-600 hover:bg-brand-500 text-white rounded-xl shadow-lg shadow-brand-600/20 transition transform active:scale-95 btn-inset-shine flex items-center gap-1.5"
           >
             <i class="fa-solid fa-user-plus text-[11px]"></i>
-            <span>สมัครสมาชิก</span>
+            <span class="hidden sm:inline">สมัครสมาชิก</span>
+            <span class="sm:hidden">สมัคร</span>
           </button>
         </div>
 
         <!-- Authenticated Dropdown & Add Button -->
-        <div id="auth-logged-in" class="hidden flex items-center gap-3">
+        <div id="auth-logged-in" class="hidden flex items-center gap-2 sm:gap-3">
           <button 
             onclick="openProjectModal('add')" 
-            class="px-4 py-2 text-xs font-semibold bg-gradient-to-r from-brand-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-brand-600/20 transition transform active:scale-95 btn-inset-shine flex items-center gap-1.5"
+            class="px-3 sm:px-4 py-2 text-xs font-semibold bg-gradient-to-r from-brand-600 to-blue-600 hover:from-brand-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-brand-600/20 transition transform active:scale-95 btn-inset-shine flex items-center gap-1.5"
           >
             <i class="fa-solid fa-plus text-[11px]"></i>
-            <span>เพิ่มผลงานใหม่</span>
+            <span class="hidden sm:inline">เพิ่มผลงานใหม่</span>
+            <span class="sm:hidden">เพิ่ม</span>
           </button>
 
-          <div class="relative group">
-            <button class="flex items-center gap-2.5 py-1.5 px-3 bg-dark-900 border border-slate-800 rounded-xl hover:border-slate-700 transition">
+          <div class="relative" id="user-dropdown-wrapper">
+            <button 
+              id="user-dropdown-toggle"
+              onclick="toggleUserDropdown()" 
+              class="flex items-center gap-2 sm:gap-2.5 py-1.5 px-2 sm:px-3 bg-dark-900 border border-slate-800 rounded-xl hover:border-slate-700 transition"
+            >
               <div class="w-7 h-7 rounded-lg bg-brand-600/20 border border-brand-500/30 text-brand-300 flex items-center justify-center font-bold text-xs font-mono" id="user-avatar">
                 U
               </div>
@@ -200,30 +253,30 @@
                 <span class="block text-xs font-semibold text-slate-200 leading-none mb-0.5" id="user-fullname">User</span>
                 <span class="block text-[9px] text-brand-400 font-mono font-bold uppercase tracking-wider leading-none" id="user-role-badge">Student</span>
               </div>
-              <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+              <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-0.5 sm:ml-1 transition-transform duration-200" id="dropdown-chevron"></i>
             </button>
 
-            <!-- Dropdown Menu -->
-            <div class="absolute right-0 mt-2 w-52 bg-dark-900 border border-slate-800 rounded-xl shadow-2xl py-1.5 hidden group-hover:block transition-all z-50 backdrop-blur-xl">
+            <!-- Dropdown Menu (Click-based, not hover) -->
+            <div id="user-dropdown-menu" class="absolute right-0 mt-2 w-52 bg-dark-900 border border-slate-800 rounded-xl shadow-2xl py-1.5 hidden dropdown-enter z-50 backdrop-blur-xl">
               <div class="px-4 py-2 border-b border-slate-800/80">
                 <p class="text-[10px] text-slate-400">เข้าใช้ด้วยบัญชี:</p>
                 <p class="text-xs font-semibold text-slate-200 font-mono truncate" id="dropdown-username">@username</p>
               </div>
               <button 
-                onclick="openProfileModal()" 
-                class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition"
+                onclick="openProfileModal(); closeUserDropdown();" 
+                class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition active:bg-slate-700"
               >
                 <i class="fa-solid fa-user-gear text-brand-400"></i>โปรไฟล์ของฉัน
               </button>
               <button 
-                onclick="filterMyProjects()" 
-                class="w-full text-left px-4 py-2 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition"
+                onclick="filterMyProjects(); closeUserDropdown();" 
+                class="w-full text-left px-4 py-2.5 text-xs text-slate-300 hover:bg-slate-800/80 hover:text-white flex items-center gap-2 transition active:bg-slate-700"
               >
                 <i class="fa-solid fa-folder-open text-brand-400"></i>ผลงานของฉัน
               </button>
               <button 
-                onclick="logout()" 
-                class="w-full text-left px-4 py-2 text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 flex items-center gap-2 transition border-t border-slate-800/60 mt-1"
+                onclick="logout(); closeUserDropdown();" 
+                class="w-full text-left px-4 py-2.5 text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 flex items-center gap-2 transition border-t border-slate-800/60 mt-1 active:bg-rose-500/20"
               >
                 <i class="fa-solid fa-right-from-bracket"></i>ออกจากระบบ
               </button>
@@ -238,22 +291,22 @@
   <!-- ============================================================ -->
   <!-- MAIN CONTENT AREA -->
   <!-- ============================================================ -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6 sm:space-y-10">
 
     <!-- HERO BANNER & STATS CARDS -->
-    <section class="relative overflow-hidden rounded-3xl bg-dark-900 border border-white/[0.08] p-8 sm:p-10 shadow-2xl">
+    <section class="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-dark-900 border border-white/[0.08] p-5 sm:p-8 md:p-10 shadow-2xl">
       <!-- Subtle Accent Border Glow -->
       <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-brand-500/40 to-transparent"></div>
 
-      <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
         
         <!-- Hero Text -->
-        <div class="lg:col-span-7 space-y-4">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium">
+        <div class="lg:col-span-7 space-y-3 sm:space-y-4">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] sm:text-xs font-mono font-medium">
             <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-ring"></span>
             <span>CATALOGUE • 2026 EDITION</span>
           </div>
-          <h1 class="font-heading text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight">
+          <h1 class="font-heading text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight">
             คลังจัดเก็บ & แสดง <span class="gradient-heading">ผลงานโปรเจกต์</span> ภาควิชา
           </h1>
           <p class="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-2xl">
@@ -262,29 +315,29 @@
         </div>
 
         <!-- Overview Stats Cards -->
-        <div class="lg:col-span-5 grid grid-cols-3 gap-3">
-          <div class="glass-card p-4 rounded-2xl text-center space-y-1 hover:border-brand-500/30 transition">
-            <div class="w-9 h-9 mx-auto rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20 flex items-center justify-center mb-1">
-              <i class="fa-solid fa-code text-sm"></i>
+        <div class="lg:col-span-5 grid grid-cols-3 gap-2 sm:gap-3">
+          <div class="glass-card p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center space-y-1 hover:border-brand-500/30 transition">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-lg sm:rounded-xl bg-brand-500/10 text-brand-400 border border-brand-500/20 flex items-center justify-center mb-1">
+              <i class="fa-solid fa-code text-xs sm:text-sm"></i>
             </div>
-            <div class="font-mono text-2xl font-bold text-white tracking-tight" id="stat-total-projects">0</div>
-            <div class="text-[10px] text-slate-400 font-medium">โปรเจกต์ทั้งหมด</div>
+            <div class="font-mono text-xl sm:text-2xl font-bold text-white tracking-tight" id="stat-total-projects">0</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-400 font-medium">โปรเจกต์ทั้งหมด</div>
           </div>
 
-          <div class="glass-card p-4 rounded-2xl text-center space-y-1 hover:border-purple-500/30 transition">
-            <div class="w-9 h-9 mx-auto rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center mb-1">
-              <i class="fa-solid fa-tags text-sm"></i>
+          <div class="glass-card p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center space-y-1 hover:border-purple-500/30 transition">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-lg sm:rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 flex items-center justify-center mb-1">
+              <i class="fa-solid fa-tags text-xs sm:text-sm"></i>
             </div>
-            <div class="font-mono text-2xl font-bold text-white tracking-tight" id="stat-total-tags">0</div>
-            <div class="text-[10px] text-slate-400 font-medium">หมวดหมู่แท็ก</div>
+            <div class="font-mono text-xl sm:text-2xl font-bold text-white tracking-tight" id="stat-total-tags">0</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-400 font-medium">หมวดหมู่แท็ก</div>
           </div>
 
-          <div class="glass-card p-4 rounded-2xl text-center space-y-1 hover:border-emerald-500/30 transition">
-            <div class="w-9 h-9 mx-auto rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-1">
-              <i class="fa-solid fa-user-group text-sm"></i>
+          <div class="glass-card p-3 sm:p-4 rounded-xl sm:rounded-2xl text-center space-y-1 hover:border-emerald-500/30 transition">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 mx-auto rounded-lg sm:rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mb-1">
+              <i class="fa-solid fa-user-group text-xs sm:text-sm"></i>
             </div>
-            <div class="font-mono text-2xl font-bold text-white tracking-tight" id="stat-total-authors">0</div>
-            <div class="text-[10px] text-slate-400 font-medium">ผู้สร้างสรรค์</div>
+            <div class="font-mono text-xl sm:text-2xl font-bold text-white tracking-tight" id="stat-total-authors">0</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-400 font-medium">ผู้สร้างสรรค์</div>
           </div>
         </div>
 
@@ -292,8 +345,8 @@
     </section>
 
     <!-- SEARCH & FILTER BAR -->
-    <section class="space-y-4">
-      <div class="flex flex-col md:flex-row gap-3.5 items-stretch md:items-center justify-between">
+    <section class="space-y-3 sm:space-y-4">
+      <div class="flex flex-col gap-3 sm:gap-3.5">
         
         <!-- Main Search Bar -->
         <div class="relative flex-1">
@@ -302,32 +355,32 @@
             type="text" 
             id="search-input" 
             placeholder="ค้นหาชื่อโปรเจกต์, คำอธิบาย หรือแท็ก..." 
-            class="w-full pl-10 pr-10 py-2.5 bg-dark-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 text-xs shadow-inner transition"
+            class="w-full pl-10 pr-10 py-3 sm:py-2.5 bg-dark-900 border border-slate-800 rounded-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 text-sm sm:text-xs shadow-inner transition"
           >
           <button 
             id="clear-search-btn" 
             onclick="clearSearch()" 
-            class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+            class="hidden absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs p-1"
           >
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
         <!-- Tag Filter Pills -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none" id="tag-filter-container">
-          <button onclick="selectTag('All')" class="tag-filter-btn active-tag px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-brand-600 text-white shadow-lg shadow-brand-600/20 border border-brand-500">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none -mx-1 px-1" id="tag-filter-container">
+          <button onclick="selectTag('All')" class="tag-filter-btn active-tag px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-brand-600 text-white shadow-lg shadow-brand-600/20 border border-brand-500">
             ทั้งหมด (All)
           </button>
-          <button onclick="selectTag('Web')" class="tag-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
+          <button onclick="selectTag('Web')" class="tag-filter-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
             #Web
           </button>
-          <button onclick="selectTag('IoT')" class="tag-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
+          <button onclick="selectTag('IoT')" class="tag-filter-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
             #IoT
           </button>
-          <button onclick="selectTag('AI')" class="tag-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
+          <button onclick="selectTag('AI')" class="tag-filter-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
             #AI
           </button>
-          <button onclick="selectTag('Mobile')" class="tag-filter-btn px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
+          <button onclick="selectTag('Mobile')" class="tag-filter-btn px-3 sm:px-3.5 py-2 rounded-xl text-xs font-semibold transition whitespace-nowrap bg-dark-900 text-slate-400 border border-slate-800 hover:bg-dark-850 hover:text-slate-200">
             #Mobile
           </button>
         </div>
@@ -348,11 +401,11 @@
       </div>
 
       <!-- Project Cards Grid -->
-      <div id="project-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="project-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <!-- Skeleton Loading Cards -->
-        <div class="glass-card rounded-2xl overflow-hidden animate-pulse h-96 flex flex-col">
-          <div class="h-48 bg-dark-800"></div>
-          <div class="p-5 flex-1 space-y-3">
+        <div class="glass-card rounded-2xl overflow-hidden animate-pulse h-80 sm:h-96 flex flex-col">
+          <div class="h-40 sm:h-48 bg-dark-800"></div>
+          <div class="p-4 sm:p-5 flex-1 space-y-3">
             <div class="h-4 bg-dark-800 rounded w-1/4"></div>
             <div class="h-6 bg-dark-800 rounded w-3/4"></div>
             <div class="h-4 bg-dark-800 rounded w-full"></div>
@@ -362,13 +415,13 @@
       </div>
 
       <!-- Empty State Illustration -->
-      <div id="empty-state" class="hidden text-center py-16 space-y-4 bg-dark-900/60 border border-dashed border-slate-800 rounded-3xl">
-        <div class="w-14 h-14 mx-auto rounded-2xl bg-dark-800 text-slate-500 flex items-center justify-center text-xl border border-slate-700/50">
+      <div id="empty-state" class="hidden text-center py-12 sm:py-16 space-y-4 bg-dark-900/60 border border-dashed border-slate-800 rounded-2xl sm:rounded-3xl">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-xl sm:rounded-2xl bg-dark-800 text-slate-500 flex items-center justify-center text-lg sm:text-xl border border-slate-700/50">
           <i class="fa-solid fa-folder-open"></i>
         </div>
-        <h3 class="text-base font-semibold text-slate-300">ไม่พบข้อมูลโปรเจกต์ที่ตรงกับเงื่อนไข</h3>
-        <p class="text-xs text-slate-500 max-w-md mx-auto">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่แท็กอื่นเพื่อค้นหาผลงานโปรเจกต์ในระบบ</p>
-        <button onclick="resetFilters()" class="px-4 py-2 bg-dark-800 hover:bg-dark-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition">
+        <h3 class="text-sm sm:text-base font-semibold text-slate-300">ไม่พบข้อมูลโปรเจกต์ที่ตรงกับเงื่อนไข</h3>
+        <p class="text-xs text-slate-500 max-w-md mx-auto px-4">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่แท็กอื่นเพื่อค้นหาผลงานโปรเจกต์ในระบบ</p>
+        <button onclick="resetFilters()" class="px-4 py-2.5 bg-dark-800 hover:bg-dark-700 text-slate-200 border border-slate-700 rounded-xl text-xs font-semibold transition active:scale-95">
           ดูโปรเจกต์ทั้งหมด
         </button>
       </div>
@@ -379,8 +432,8 @@
   <!-- ============================================================ -->
   <!-- FOOTER -->
   <!-- ============================================================ -->
-  <footer class="border-t border-slate-900 bg-dark-950 py-8 text-center text-xs text-slate-500">
-    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+  <footer class="border-t border-slate-900 bg-dark-950 py-6 sm:py-8 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
       <p>© 2026 Department Project Showcase. All rights reserved.</p>
       <p class="flex items-center gap-2 text-[11px]">
         <span>ระบบจัดเก็บผลงานโปรเจกต์นิสิตนักศึกษา ภาควิชาวิศวกรรมและเทคโนโลยี</span>
@@ -391,16 +444,16 @@
   <!-- ============================================================ -->
   <!-- MODAL 1: AUTHENTICATION MODAL (LOGIN / REGISTER) -->
   <!-- ============================================================ -->
-  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/85 backdrop-blur-md transition-opacity">
-    <div class="glass-card w-full max-w-md rounded-3xl border border-slate-800/90 p-6 sm:p-7 shadow-2xl relative">
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-dark-950/85 backdrop-blur-md transition-opacity" onclick="if(event.target===this)closeAuthModal()">
+    <div class="glass-card w-full max-w-md rounded-2xl sm:rounded-3xl border border-slate-800/90 p-5 sm:p-6 md:p-7 shadow-2xl relative modal-scroll-body">
       
       <!-- Close Button -->
-      <button onclick="closeAuthModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-800">
         <i class="fa-solid fa-xmark text-base"></i>
       </button>
 
       <!-- Auth Tabs -->
-      <div class="flex border-b border-slate-800 mb-6">
+      <div class="flex border-b border-slate-800 mb-5 sm:mb-6">
         <button 
           id="tab-login" 
           onclick="switchAuthTab('login')" 
@@ -426,7 +479,8 @@
             id="login-username" 
             required 
             placeholder="ตัวอย่าง: admin"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            autocomplete="username"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
         <div>
@@ -436,14 +490,16 @@
             id="login-password" 
             required 
             placeholder="••••••••"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            autocomplete="current-password"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
         <button 
           type="submit" 
-          class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition active:scale-95 btn-inset-shine mt-2"
+          id="login-submit-btn"
+          class="w-full py-3 sm:py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm sm:text-xs font-semibold shadow-lg shadow-brand-600/20 transition active:scale-95 btn-inset-shine mt-2 flex items-center justify-center gap-2"
         >
-          เข้าสู่ระบบ
+          <span>เข้าสู่ระบบ</span>
         </button>
 
         <div class="mt-4 p-3 bg-dark-950/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 space-y-2">
@@ -459,13 +515,13 @@
                 type="password" 
                 id="admin-passcode-input" 
                 placeholder="กรอกรหัสผ่านเพื่อปลดล็อก" 
-                class="flex-1 px-3 py-1.5 bg-dark-900 border border-slate-800 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+                class="flex-1 px-3 py-2 sm:py-1.5 bg-dark-900 border border-slate-800 rounded-lg text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
                 onkeydown="if(event.key === 'Enter') { event.preventDefault(); handleUnlockAdmin(); }"
               >
               <button 
                 type="button" 
                 onclick="handleUnlockAdmin()" 
-                class="px-3 py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-lg text-xs transition shrink-0"
+                class="px-3 py-2 sm:py-1.5 bg-brand-600 hover:bg-brand-500 text-white font-medium rounded-lg text-xs transition shrink-0 active:scale-95"
               >
                 ปลดล็อก
               </button>
@@ -492,7 +548,8 @@
             id="register-username" 
             required 
             placeholder="ตัวอย่าง: student_new"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            autocomplete="username"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
         <div>
@@ -502,7 +559,8 @@
             id="register-fullname" 
             required 
             placeholder="ตัวอย่าง: นายสมศักดิ์ รักเรียน"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            autocomplete="name"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
         <div>
@@ -512,14 +570,16 @@
             id="register-password" 
             required 
             placeholder="กำหนดรหัสผ่านอย่างน้อย 6 ตัวอักษร"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500"
+            autocomplete="new-password"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 placeholder-slate-500 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
         <button 
           type="submit" 
-          class="w-full py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition active:scale-95 btn-inset-shine mt-2"
+          id="register-submit-btn"
+          class="w-full py-3 sm:py-2.5 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-sm sm:text-xs font-semibold shadow-lg shadow-brand-600/20 transition active:scale-95 btn-inset-shine mt-2 flex items-center justify-center gap-2"
         >
-          ยืนยันการสมัครสมาชิก
+          <span>ยืนยันการสมัครสมาชิก</span>
         </button>
       </form>
 
@@ -529,15 +589,15 @@
   <!-- ============================================================ -->
   <!-- MODAL 2: PROJECT FORM MODAL (ADD / EDIT PROJECT) -->
   <!-- ============================================================ -->
-  <div id="project-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto">
-    <div class="glass-card w-full max-w-2xl rounded-3xl border border-slate-800/90 p-6 sm:p-8 shadow-2xl relative my-8">
+  <div id="project-modal" class="hidden fixed inset-0 z-50 flex items-start sm:items-center justify-center p-0 sm:p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto" onclick="if(event.target===this)closeProjectModal()">
+    <div class="glass-card w-full sm:max-w-2xl sm:rounded-3xl border-0 sm:border border-slate-800/90 p-5 sm:p-6 md:p-8 shadow-2xl relative sm:my-8 min-h-screen sm:min-h-0 modal-scroll-body">
       
       <!-- Close Button -->
-      <button onclick="closeProjectModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition">
+      <button onclick="closeProjectModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400 hover:text-white transition w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-800 z-10">
         <i class="fa-solid fa-xmark text-base"></i>
       </button>
 
-      <h2 class="font-heading text-lg font-bold text-white mb-6 flex items-center gap-2" id="project-modal-title">
+      <h2 class="font-heading text-base sm:text-lg font-bold text-white mb-5 sm:mb-6 flex items-center gap-2 pr-10" id="project-modal-title">
         <i class="fa-solid fa-file-pen text-brand-400"></i>
         <span>เพิ่มผลงานโปรเจกต์ใหม่</span>
       </h2>
@@ -552,7 +612,7 @@
             id="project-title" 
             required 
             placeholder="ตัวอย่าง: ระบบบริหารจัดการคลังสินค้าด้วย IoT"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
 
@@ -563,7 +623,7 @@
             required 
             rows="2" 
             placeholder="สรุปย่อไม่เกิน 2-3 ประโยคเพื่อแสดงในการ์ด..."
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           ></textarea>
         </div>
 
@@ -572,20 +632,20 @@
           <textarea 
             id="project-full-desc" 
             required 
-            rows="5" 
+            rows="4" 
             placeholder="รายละเอียดเชิงลึก เทคโนโลยีที่ใช้ ฟีเจอร์หลัก ผลการทดลอง..."
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           ></textarea>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL รูปภาพปก (Cover Image Link)</label>
             <input 
               type="url" 
               id="project-cover-url" 
               placeholder="https://images.unsplash.com/..."
-              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
             >
           </div>
 
@@ -595,19 +655,19 @@
               type="file" 
               id="project-cover-file" 
               accept="image/*"
-              class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-dark-800 file:text-slate-300 hover:file:bg-dark-700"
+              class="w-full text-xs text-slate-400 file:mr-3 file:py-2.5 sm:file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-dark-800 file:text-slate-300 hover:file:bg-dark-700"
             >
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1.5">ลิงก์สาธิต (Demo URL)</label>
             <input 
               type="url" 
               id="project-demo-url" 
               placeholder="https://my-demo-app.com"
-              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
             >
           </div>
 
@@ -617,7 +677,7 @@
               type="url" 
               id="project-github-url" 
               placeholder="https://github.com/user/project"
-              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
             >
           </div>
         </div>
@@ -628,7 +688,7 @@
             type="text" 
             id="project-tags" 
             placeholder="ตัวอย่าง: Web, IoT, AI, Node.js"
-            class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+            class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
           >
         </div>
 
@@ -636,13 +696,13 @@
           <button 
             type="button" 
             onclick="closeProjectModal()" 
-            class="px-5 py-2 bg-dark-800 hover:bg-dark-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition"
+            class="px-5 py-2.5 sm:py-2 bg-dark-800 hover:bg-dark-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition active:scale-95"
           >
             ยกเลิก
           </button>
           <button 
             type="submit" 
-            class="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition btn-inset-shine"
+            class="px-6 py-2.5 sm:py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition btn-inset-shine active:scale-95"
           >
             บันทึกผลงาน
           </button>
@@ -655,31 +715,31 @@
   <!-- ============================================================ -->
   <!-- MODAL 3: PROJECT DETAIL MODAL (FULL VIEW) -->
   <!-- ============================================================ -->
-  <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto">
-    <div class="glass-card w-full max-w-3xl rounded-3xl border border-slate-800 overflow-hidden shadow-2xl relative my-8">
+  <div id="detail-modal" class="hidden fixed inset-0 z-50 flex items-start sm:items-center justify-center p-0 sm:p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto" onclick="if(event.target===this)closeDetailModal()">
+    <div class="glass-card w-full sm:max-w-3xl sm:rounded-3xl border-0 sm:border border-slate-800 overflow-hidden shadow-2xl relative sm:my-8 min-h-screen sm:min-h-0">
       
       <!-- Cover Image Header -->
-      <div class="relative h-64 sm:h-80 w-full overflow-hidden bg-dark-950">
+      <div class="relative h-48 sm:h-64 md:h-80 w-full overflow-hidden bg-dark-950">
         <img id="detail-cover" src="" alt="Project Cover" class="w-full h-full object-cover">
         <div class="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/40 to-transparent"></div>
         
         <!-- Close Button -->
-        <button onclick="closeDetailModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-dark-950/80 text-white hover:bg-dark-900 flex items-center justify-center transition border border-slate-700">
+        <button onclick="closeDetailModal()" class="absolute top-3 right-3 sm:top-4 sm:right-4 w-9 h-9 sm:w-8 sm:h-8 rounded-full bg-dark-950/80 text-white hover:bg-dark-900 flex items-center justify-center transition border border-slate-700 active:scale-90">
           <i class="fa-solid fa-xmark text-xs"></i>
         </button>
 
-        <div class="absolute bottom-6 left-6 right-6 space-y-2">
-          <div id="detail-tags" class="flex flex-wrap gap-2"></div>
-          <h2 id="detail-title" class="font-heading text-xl sm:text-3xl font-extrabold text-white leading-tight"></h2>
+        <div class="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 space-y-2">
+          <div id="detail-tags" class="flex flex-wrap gap-1.5 sm:gap-2"></div>
+          <h2 id="detail-title" class="font-heading text-lg sm:text-xl md:text-3xl font-extrabold text-white leading-tight"></h2>
         </div>
       </div>
 
       <!-- Detail Body -->
-      <div class="p-6 sm:p-8 space-y-6">
+      <div class="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
         <!-- Author Info & Meta -->
-        <div class="flex items-center justify-between p-4 bg-dark-900/80 border border-slate-800 rounded-2xl">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 p-3 sm:p-4 bg-dark-900/80 border border-slate-800 rounded-xl sm:rounded-2xl">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-brand-600/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-xs">
+            <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-brand-600/20 text-brand-400 border border-brand-500/30 flex items-center justify-center font-bold text-xs">
               <i class="fa-solid fa-user-graduate"></i>
             </div>
             <div>
@@ -687,7 +747,7 @@
               <p class="text-xs font-semibold text-slate-200" id="detail-author"></p>
             </div>
           </div>
-          <div class="text-right">
+          <div class="sm:text-right">
             <p class="text-[10px] text-slate-400">วันที่เผยแพร่:</p>
             <p class="text-xs font-mono text-slate-300" id="detail-date"></p>
           </div>
@@ -696,11 +756,11 @@
         <!-- Full Description -->
         <div class="space-y-2">
           <h4 class="text-xs font-bold text-brand-400 font-mono uppercase tracking-wider">รายละเอียดโปรเจกต์</h4>
-          <p id="detail-full-desc" class="text-slate-300 text-xs leading-relaxed whitespace-pre-line"></p>
+          <p id="detail-full-desc" class="text-slate-300 text-xs sm:text-sm leading-relaxed whitespace-pre-line"></p>
         </div>
 
         <!-- Action Links (Demo / GitHub) -->
-        <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-800" id="detail-actions">
+        <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-3 pt-4 border-t border-slate-800" id="detail-actions">
           <!-- Inject Demo and GitHub buttons via JS -->
         </div>
       </div>
@@ -711,19 +771,19 @@
   <!-- ============================================================ -->
   <!-- MODAL 4: USER PROFILE MODAL (PUBLIC & EDIT VIEW) -->
   <!-- ============================================================ -->
-  <div id="profile-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto">
-    <div class="glass-card w-full max-w-3xl rounded-3xl border border-slate-800/90 p-6 sm:p-8 shadow-2xl relative my-8">
+  <div id="profile-modal" class="hidden fixed inset-0 z-50 flex items-start sm:items-center justify-center p-0 sm:p-4 bg-dark-950/85 backdrop-blur-md transition-opacity overflow-y-auto" onclick="if(event.target===this)closeProfileModal()">
+    <div class="glass-card w-full sm:max-w-3xl sm:rounded-3xl border-0 sm:border border-slate-800/90 p-4 sm:p-6 md:p-8 shadow-2xl relative sm:my-8 min-h-screen sm:min-h-0 modal-scroll-body">
       
       <!-- Close Button -->
-      <button onclick="closeProfileModal()" class="absolute top-5 right-5 text-slate-400 hover:text-white transition z-10">
+      <button onclick="closeProfileModal()" class="absolute top-4 right-4 sm:top-5 sm:right-5 text-slate-400 hover:text-white transition z-10 w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-800">
         <i class="fa-solid fa-xmark text-base"></i>
       </button>
 
       <!-- Profile Header Card -->
-      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 bg-dark-900/90 border border-slate-800/90 rounded-2xl relative mb-6">
+      <div class="flex flex-col items-center sm:flex-row sm:items-start gap-4 sm:gap-5 p-4 sm:p-5 bg-dark-900/90 border border-slate-800/90 rounded-xl sm:rounded-2xl relative mb-5 sm:mb-6">
         <!-- Avatar Image / Placeholder -->
-        <div class="relative">
-          <div id="profile-avatar-container" class="w-20 h-20 rounded-2xl bg-brand-600/20 border-2 border-brand-500/40 text-brand-300 flex items-center justify-center text-2xl font-bold font-mono shadow-xl overflow-hidden">
+        <div class="relative shrink-0">
+          <div id="profile-avatar-container" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl sm:rounded-2xl bg-brand-600/20 border-2 border-brand-500/40 text-brand-300 flex items-center justify-center text-xl sm:text-2xl font-bold font-mono shadow-xl overflow-hidden">
             U
           </div>
           <span id="profile-role-badge" class="absolute -bottom-2 -right-2 px-2 py-0.5 rounded-md text-[9px] font-mono font-bold uppercase tracking-wider bg-brand-600 text-white border border-brand-400 shadow">
@@ -731,10 +791,10 @@
           </span>
         </div>
 
-        <div class="flex-1 text-center sm:text-left space-y-1.5">
+        <div class="flex-1 text-center sm:text-left space-y-1.5 min-w-0">
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <h2 id="profile-fullname" class="font-heading text-xl font-bold text-white leading-tight">User Full Name</h2>
+            <div class="min-w-0">
+              <h2 id="profile-fullname" class="font-heading text-lg sm:text-xl font-bold text-white leading-tight truncate">User Full Name</h2>
               <p id="profile-username" class="text-xs text-brand-400 font-mono">@username</p>
             </div>
             
@@ -742,7 +802,7 @@
             <button 
               id="edit-profile-btn" 
               onclick="toggleProfileTab('edit')" 
-              class="hidden px-3 py-1.5 text-xs font-semibold bg-dark-800 hover:bg-brand-600 text-slate-200 hover:text-white border border-slate-700 hover:border-brand-500 rounded-xl transition flex items-center justify-center gap-1.5 self-center sm:self-start"
+              class="hidden px-3 py-2 sm:py-1.5 text-xs font-semibold bg-dark-800 hover:bg-brand-600 text-slate-200 hover:text-white border border-slate-700 hover:border-brand-500 rounded-xl transition flex items-center justify-center gap-1.5 self-center sm:self-start active:scale-95 shrink-0"
             >
               <i class="fa-solid fa-pen-to-square text-[10px]"></i>
               <span>แก้ไขโปรไฟล์</span>
@@ -752,10 +812,10 @@
           <p id="profile-bio" class="text-xs text-slate-300 leading-relaxed whitespace-pre-line">ยังไม่มีคำอธิบายประวัติย่อ</p>
 
           <!-- Social Links & Contact -->
-          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2 text-xs">
+          <div class="flex flex-wrap items-center justify-center sm:justify-start gap-3 sm:gap-4 pt-2 text-xs">
             <span id="profile-email-wrap" class="hidden text-slate-400 flex items-center gap-1.5">
               <i class="fa-solid fa-envelope text-slate-500"></i>
-              <a id="profile-email" href="#" class="text-slate-300 hover:text-brand-400 transition"></a>
+              <a id="profile-email" href="#" class="text-slate-300 hover:text-brand-400 transition truncate max-w-[160px]"></a>
             </span>
             <span id="profile-github-wrap" class="hidden text-slate-400 flex items-center gap-1.5">
               <i class="fa-brands fa-github text-slate-400"></i>
@@ -774,31 +834,31 @@
       </div>
 
       <!-- Profile Tabs (View Projects vs Edit Profile) -->
-      <div class="flex border-b border-slate-800 mb-6">
+      <div class="flex border-b border-slate-800 mb-5 sm:mb-6 overflow-x-auto scrollbar-none">
         <button 
           id="tab-profile-projects" 
           onclick="toggleProfileTab('projects')" 
-          class="py-2.5 px-4 text-xs font-semibold text-brand-400 border-b-2 border-brand-500 transition flex items-center gap-2"
+          class="py-2.5 px-3 sm:px-4 text-xs font-semibold text-brand-400 border-b-2 border-brand-500 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
         >
           <i class="fa-solid fa-folder-open"></i>
-          <span>ผลงานโปรเจกต์ (<span id="profile-projects-count">0</span>)</span>
+          <span>ผลงาน (<span id="profile-projects-count">0</span>)</span>
         </button>
         <button 
           id="tab-profile-edit" 
           onclick="toggleProfileTab('edit')" 
-          class="hidden py-2.5 px-4 text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-2"
+          class="hidden py-2.5 px-3 sm:px-4 text-xs font-semibold text-slate-400 border-b-2 border-transparent hover:text-slate-200 transition flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
         >
           <i class="fa-solid fa-gear"></i>
-          <span>ตั้งค่าข้อมูลโปรไฟล์</span>
+          <span>ตั้งค่าโปรไฟล์</span>
         </button>
       </div>
 
       <!-- TAB 1: USER'S PROJECTS GRID -->
       <div id="profile-tab-projects" class="space-y-4">
-        <div id="profile-projects-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div id="profile-projects-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           <!-- Inject user's project cards via JS -->
         </div>
-        <div id="profile-empty-projects" class="hidden text-center py-10 bg-dark-900/50 rounded-2xl border border-dashed border-slate-800">
+        <div id="profile-empty-projects" class="hidden text-center py-8 sm:py-10 bg-dark-900/50 rounded-xl sm:rounded-2xl border border-dashed border-slate-800">
           <p class="text-xs text-slate-400">ยังไม่มีผลงานโปรเจกต์ในระบบ</p>
         </div>
       </div>
@@ -812,7 +872,7 @@
               type="text" 
               id="edit-fullname" 
               required 
-              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
             >
           </div>
 
@@ -822,18 +882,18 @@
               id="edit-bio" 
               rows="3" 
               placeholder="เขียนแนะนำตัว สกิลความเชี่ยวชาญ หรือความสนใจเพิ่มเติม..." 
-              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
             ></textarea>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-300 mb-1.5">อีเมลติดต่อ (Email)</label>
               <input 
                 type="email" 
                 id="edit-email" 
                 placeholder="name@example.com"
-                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+                class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
               >
             </div>
 
@@ -843,29 +903,29 @@
                 type="url" 
                 id="edit-github" 
                 placeholder="https://github.com/username"
-                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+                class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
               >
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">เว็บไซต์ส่วนตัว / พอร์ตโฟลิโอ (Website URL)</label>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">เว็บไซต์ส่วนตัว / พอร์ตโฟลิโอ</label>
               <input 
                 type="url" 
                 id="edit-website" 
                 placeholder="https://myportfolio.com"
-                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+                class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
               >
             </div>
 
             <div>
-              <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL รูปโปรไฟล์ (Avatar Image URL)</label>
+              <label class="block text-xs font-semibold text-slate-300 mb-1.5">URL รูปโปรไฟล์ (Avatar URL)</label>
               <input 
                 type="url" 
                 id="edit-avatar-url" 
                 placeholder="https://images.unsplash.com/..."
-                class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+                class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
               >
             </div>
           </div>
@@ -876,7 +936,7 @@
               type="file" 
               id="edit-avatar-file" 
               accept="image/*"
-              class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-dark-800 file:text-slate-300 hover:file:bg-dark-700"
+              class="w-full text-xs text-slate-400 file:mr-3 file:py-2.5 sm:file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-dark-800 file:text-slate-300 hover:file:bg-dark-700"
             >
           </div>
 
@@ -886,7 +946,8 @@
               type="password" 
               id="edit-password" 
               placeholder="รหัสผ่านใหม่ อย่างน้อย 6 ตัวอักษร"
-              class="w-full px-4 py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-xs text-slate-100 focus:outline-none focus:border-brand-500"
+              autocomplete="new-password"
+              class="w-full px-4 py-3 sm:py-2.5 bg-dark-950 border border-slate-800 rounded-xl text-sm sm:text-xs text-slate-100 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30"
             >
           </div>
 
@@ -894,13 +955,13 @@
             <button 
               type="button" 
               onclick="toggleProfileTab('projects')" 
-              class="px-4 py-2 bg-dark-800 hover:bg-dark-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition"
+              class="px-4 py-2.5 sm:py-2 bg-dark-800 hover:bg-dark-700 text-slate-300 border border-slate-700 rounded-xl text-xs font-semibold transition active:scale-95"
             >
               ยกเลิก
             </button>
             <button 
               type="submit" 
-              class="px-6 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition btn-inset-shine"
+              class="px-6 py-2.5 sm:py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-brand-600/20 transition btn-inset-shine active:scale-95"
             >
               บันทึกการเปลี่ยนแปลง
             </button>
@@ -914,7 +975,7 @@
   <!-- ============================================================ -->
   <!-- TOAST NOTIFICATION CONTAINER -->
   <!-- ============================================================ -->
-  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+  <div id="toast-container" class="fixed bottom-5 left-4 right-4 sm:left-auto sm:right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
 
   <!-- App Main JavaScript Logic -->
   <script src="js/app.js"></script>
