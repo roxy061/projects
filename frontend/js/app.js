@@ -9,7 +9,9 @@
 // ------------------------------------------------------------
 // 1. GLOBAL CONFIGURATION & STATE MANAGEMENT
 // ------------------------------------------------------------
-const API_BASE_URL = '/api';
+const API_BASE_URL = window.location.hostname.includes('vercel.app')
+  ? 'http://61.7.240.180/api'
+  : '/api';
 
 let currentUser = null;
 let authToken = null;
