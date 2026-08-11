@@ -92,22 +92,24 @@ const dbConfig = {
 const pool = mysql.createPool(dbConfig);
 
 // ทดสอบการเชื่อมต่อฐานข้อมูล
-// ทดสอบการเชื่อมต่อฐานข้อมูลและอัปเดต Schema
-async function checkDatabaseConnection() {
+async function checkDatabaseConnection(isSilent = false) {
   try {
     const connection = await pool.getConnection();
-    console.log('✅ เชื่อมต่อฐานข้อมูล MariaDB/MySQL สำเร็จ!');
+    if (!isSilent) {
+      console.log('✅ เชื่อมต่อฐานข้อมูล MariaDB/MySQL สำเร็จ!');
+    }
     connection.release();
-    await migrateDatabaseSchema();
     return true;
   } catch (error) {
-    console.error('⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูลได้:', error.message);
-    console.error('กรุณาตรวจสอบว่า MariaDB/MySQL ทำงานอยู่ และข้อมูลใน .env หรือ database.sql ถูกต้อง');
+    if (!isSilent) {
+      console.error('⚠️ ไม่สามารถเชื่อมต่อฐานข้อมูลได้:', error.message);
+      console.error('กรุณาตรวจสอบว่า MariaDB/MySQL ทำงานอยู่ และข้อมูลใน .env หรือ database.sql ถูกต้อง');
+    }
     return false;
   }
 }
 
-// อัปเดตโครงสร้างตาราง users อัตโนมัติหากยังไม่มีคอลัมน์โปรไฟล์
+// อัปเดตโครงสร้างตาราง users อัตโนมัติหากยังไม่มีคอลัมน์โปรไฟล์ (รันครั้งเดียวตอนเริ่มต้น)
 async function migrateDatabaseSchema() {
   try {
     const columns = [
@@ -130,6 +132,9 @@ async function migrateDatabaseSchema() {
     console.error('Schema migration note:', error.message);
   }
 }
+
+// รัน Migration บน Startup
+migrateDatabaseSchema();
 
 // ------------------------------------------------------------
 // 4. AUTHENTICATION MIDDLEWARE (JWT Verification)
@@ -160,7 +165,7 @@ const authenticateToken = (req, res, next) => {
  * @desc ตรวจสอบสถานะ Backend Server และการเชื่อมต่อฐานข้อมูล
  */
 app.get('/api/health', async (req, res) => {
-  const isDbConnected = await checkDatabaseConnection();
+  const isDbConnected = await checkDatabaseConnection(true);
   res.json({
     status: 'ok',
     serverTime: new Date().toISOString(),
